@@ -1,0 +1,934 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Ruteku — Perencanaan Wisata Berbasis AI</title>
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Font Awesome Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            brand: {
+              50: '#effaf6',
+              100: '#d7f3e8',
+              500: '#10b981',
+              600: '#059669',
+              700: '#047857',
+              800: '#065f46',
+              900: '#064e3b',
+            }
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap');
+    body { font-family: 'Plus Jakarta Sans', sans-serif; }
+    .glass { background: rgba(255, 255, 255, 0.85); backdrop-filter: blur(12px); }
+  </style>
+</head>
+<body class="bg-slate-50 text-slate-800 min-h-screen flex flex-col">
+
+  <!-- ================= NAVBAR ================= -->
+  <header class="sticky top-0 z-40 bg-white/90 backdrop-blur-md border-b border-slate-200">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+      <div class="flex items-center gap-3 cursor-pointer" onclick="switchTab('plan')">
+        <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-brand-600 to-emerald-400 flex items-center justify-center text-white shadow-md shadow-brand-500/20">
+          <i class="fa-solid fa-compass text-xl"></i>
+        </div>
+        <div>
+          <span class="text-xl font-bold bg-gradient-to-r from-brand-700 to-emerald-600 bg-clip-text text-transparent">Ruteku</span>
+          <span class="hidden sm:inline-block text-xs bg-emerald-100 text-brand-800 px-2 py-0.5 rounded-full font-semibold ml-2">AI Planner</span>
+        </div>
+      </div>
+
+      <!-- Navigation Tabs -->
+      <nav class="hidden md:flex items-center gap-1 bg-slate-100 p-1 rounded-xl">
+        <button id="nav-plan" onclick="switchTab('plan')" class="px-4 py-2 rounded-lg text-sm font-semibold transition-all bg-white text-brand-700 shadow-sm">
+          <i class="fa-solid fa-wand-magic-sparkles mr-1.5"></i> Rencanakan
+        </button>
+        <button id="nav-destinations" onclick="switchTab('destinations')" class="px-4 py-2 rounded-lg text-sm font-semibold transition-all text-slate-600 hover:text-slate-900">
+          <i class="fa-solid fa-map-location-dot mr-1.5"></i> Destinasi
+        </button>
+        <button id="nav-history" onclick="switchTab('history')" class="px-4 py-2 rounded-lg text-sm font-semibold transition-all text-slate-600 hover:text-slate-900">
+          <i class="fa-solid fa-clock-rotate-left mr-1.5"></i> Riwayat
+        </button>
+      </nav>
+
+      <!-- Auth Controls -->
+      <div id="auth-box" class="flex items-center gap-3">
+        <!-- Rendered by JS -->
+      </div>
+    </div>
+    <!-- Mobile Navigation Bar -->
+    <div class="md:hidden flex border-t border-slate-100 px-4 py-2 justify-around bg-slate-50 text-xs font-semibold">
+      <button onclick="switchTab('plan')" class="flex flex-col items-center py-1 text-brand-600"><i class="fa-solid fa-wand-magic-sparkles mb-1"></i> Rencana</button>
+      <button onclick="switchTab('destinations')" class="flex flex-col items-center py-1 text-slate-600"><i class="fa-solid fa-map-location-dot mb-1"></i> Destinasi</button>
+      <button onclick="switchTab('history')" class="flex flex-col items-center py-1 text-slate-600"><i class="fa-solid fa-clock-rotate-left mb-1"></i> Riwayat</button>
+    </div>
+  </header>
+
+  <!-- ================= MAIN CONTENT ================= -->
+  <main class="flex-grow max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8">
+
+    <!-- 1. TAB: RENCANAKAN PERJALANAN (AI GENERATOR) -->
+    <section id="tab-plan" class="space-y-8">
+      <!-- Hero / Header -->
+      <div class="text-center max-w-2xl mx-auto pt-2 pb-4">
+        <h1 class="text-3xl sm:text-4xl font-extrabold text-slate-900 tracking-tight">
+          Susun Liburan Impian dengan <span class="bg-gradient-to-r from-brand-600 to-emerald-500 bg-clip-text text-transparent">AI Cerdas</span>
+        </h1>
+        <p class="mt-2 text-slate-600 text-sm sm:text-base">
+          Cukup masukkan preferensi & anggaran, AI menyusun itinerary searah lengkap dengan kalkulasi biaya real-time.
+        </p>
+      </div>
+
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+        <!-- FORM INPUT PREFERENSI (Kiri) -->
+        <div class="lg:col-span-5 bg-white rounded-2xl shadow-sm border border-slate-200 p-6 sm:p-7">
+          <div class="flex items-center justify-between pb-4 border-b border-slate-100 mb-5">
+            <h2 class="text-lg font-bold text-slate-900 flex items-center gap-2">
+              <i class="fa-solid fa-sliders text-brand-600"></i> Preferensi Perjalanan
+            </h2>
+            <span class="text-xs bg-slate-100 text-slate-600 px-2.5 py-1 rounded-full font-medium">Langkah 1</span>
+          </div>
+
+          <form id="form-generate" onsubmit="handleGenerate(event)" class="space-y-4">
+            <!-- Kota Asal & Tujuan -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <div>
+                <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">Kota Asal</label>
+                <div class="relative">
+                  <i class="fa-solid fa-plane-departure absolute left-3 top-3 text-slate-400 text-sm"></i>
+                  <input type="text" id="input-origin" required value="Samarinda" placeholder="Misal: Samarinda"
+                    class="w-full pl-9 pr-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-brand-500 focus:bg-white focus:outline-none transition">
+                </div>
+              </div>
+              <div>
+                <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">Tujuan Wisata</label>
+                <div class="relative">
+                  <i class="fa-solid fa-location-dot absolute left-3 top-3 text-brand-600 text-sm"></i>
+                  <select id="input-destination" required
+                    class="w-full pl-9 pr-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-sm font-semibold text-slate-800 focus:ring-2 focus:ring-brand-500 focus:bg-white focus:outline-none transition cursor-pointer">
+                    <option value="Bali" selected>Bali</option>
+                    <option value="Yogyakarta">Yogyakarta</option>
+                    <option value="Labuan Bajo">Labuan Bajo</option>
+                    <option value="Derawan">Derawan</option>
+                  </select>
+                </div>
+              </div>
+            </div>
+
+            <!-- Tanggal Pergi & Pulang -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <div>
+                <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">Mulai Perjalanan</label>
+                <input type="date" id="input-start-date" required
+                  class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-brand-500 focus:bg-white focus:outline-none transition">
+              </div>
+              <div>
+                <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">Selesai Perjalanan</label>
+                <input type="date" id="input-end-date" required
+                  class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-brand-500 focus:bg-white focus:outline-none transition">
+              </div>
+            </div>
+
+            <!-- Jumlah Peserta & Anggaran -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <div>
+                <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">Jumlah Orang</label>
+                <div class="relative">
+                  <i class="fa-solid fa-users absolute left-3 top-3 text-slate-400 text-sm"></i>
+                  <input type="number" id="input-travelers" min="1" max="50" value="2" required
+                    class="w-full pl-9 pr-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-brand-500 focus:bg-white focus:outline-none transition">
+                </div>
+              </div>
+              <div>
+                <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">Total Anggaran (Rp)</label>
+                <div class="relative">
+                  <span class="absolute left-3 top-2 text-xs font-bold text-slate-400">Rp</span>
+                  <input type="number" id="input-budget" min="100000" step="100000" value="9000000" required
+                    class="w-full pl-9 pr-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-brand-500 focus:bg-white focus:outline-none transition">
+                </div>
+              </div>
+            </div>
+
+            <!-- Minat / Kategori Wisata -->
+            <div>
+              <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-2">Minat / Aktivitas</label>
+              <div class="flex flex-wrap gap-2">
+                <label class="cursor-pointer">
+                  <input type="checkbox" name="interest" value="alam" checked class="peer sr-only">
+                  <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border text-xs font-medium text-slate-600 bg-slate-50 border-slate-200 peer-checked:bg-brand-50 peer-checked:border-brand-500 peer-checked:text-brand-700 transition">
+                    <i class="fa-solid fa-mountain-sun"></i> Alam
+                  </span>
+                </label>
+                <label class="cursor-pointer">
+                  <input type="checkbox" name="interest" value="budaya" checked class="peer sr-only">
+                  <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border text-xs font-medium text-slate-600 bg-slate-50 border-slate-200 peer-checked:bg-brand-50 peer-checked:border-brand-500 peer-checked:text-brand-700 transition">
+                    <i class="fa-solid fa-landmark"></i> Budaya
+                  </span>
+                </label>
+                <label class="cursor-pointer">
+                  <input type="checkbox" name="interest" value="sejarah" class="peer sr-only">
+                  <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border text-xs font-medium text-slate-600 bg-slate-50 border-slate-200 peer-checked:bg-brand-50 peer-checked:border-brand-500 peer-checked:text-brand-700 transition">
+                    <i class="fa-solid fa-monument"></i> Sejarah
+                  </span>
+                </label>
+                <label class="cursor-pointer">
+                  <input type="checkbox" name="interest" value="kuliner" class="peer sr-only">
+                  <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border text-xs font-medium text-slate-600 bg-slate-50 border-slate-200 peer-checked:bg-brand-50 peer-checked:border-brand-500 peer-checked:text-brand-700 transition">
+                    <i class="fa-solid fa-utensils"></i> Kuliner
+                  </span>
+                </label>
+              </div>
+            </div>
+
+            <!-- Tombol Submit -->
+            <button type="submit" id="btn-generate"
+              class="w-full mt-4 py-3 px-4 bg-gradient-to-r from-brand-600 to-emerald-500 hover:from-brand-700 hover:to-emerald-600 text-white font-bold rounded-xl shadow-lg shadow-brand-500/25 flex items-center justify-center gap-2 transition duration-200 cursor-pointer">
+              <i class="fa-solid fa-wand-magic-sparkles"></i>
+              <span>Generate Itinerary AI</span>
+            </button>
+          </form>
+        </div>
+
+        <!-- HASIL ITINERARY & BIAYA (Kanan) -->
+        <div class="lg:col-span-7">
+          <!-- State Kosong (Placeholder Sebelum Generate) -->
+          <div id="plan-placeholder" class="bg-white rounded-2xl border-2 border-dashed border-slate-200 p-12 text-center">
+            <div class="w-16 h-16 rounded-2xl bg-slate-100 flex items-center justify-center text-slate-400 mx-auto mb-4">
+              <i class="fa-solid fa-map-location-dot text-2xl"></i>
+            </div>
+            <h3 class="text-base font-bold text-slate-800">Belum Ada Rencana yang Digenerate</h3>
+            <p class="text-xs text-slate-500 mt-1 max-w-sm mx-auto">
+              Silakan isi formulir di samping dan tekan tombol "Generate Itinerary AI" untuk mulai menyusun jadwal & rincian biaya.
+            </p>
+          </div>
+
+          <!-- Loading Spinner -->
+          <div id="plan-loading" class="hidden bg-white rounded-2xl border border-slate-200 p-12 text-center shadow-sm">
+            <div class="inline-block animate-spin rounded-full h-10 w-10 border-4 border-slate-200 border-t-brand-600 mb-4"></div>
+            <h3 class="text-base font-bold text-slate-900">AI Sedang Menyusun Rencana Wisata...</h3>
+            <p class="text-xs text-slate-500 mt-1">
+              Menghitung rute tercepat, mengecek harga hotel & tiket real-time dari sistem.
+            </p>
+          </div>
+
+          <!-- Kartu Hasil Lengkap -->
+          <div id="plan-result" class="hidden space-y-6">
+            <!-- Header Ringkasan & Save Action -->
+            <div class="bg-white rounded-2xl p-6 border border-slate-200 shadow-sm flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+              <div>
+                <div class="flex items-center gap-2">
+                  <span id="badge-ai" class="text-xs font-semibold px-2.5 py-0.5 rounded-full bg-emerald-100 text-emerald-800">
+                    <i class="fa-solid fa-sparkles mr-1"></i> AI Active
+                  </span>
+                  <span id="text-duration" class="text-xs font-medium text-slate-500">4 Hari • 2 Orang</span>
+                </div>
+                <h2 id="plan-title" class="text-xl font-extrabold text-slate-900 mt-1">Perjalanan ke Bali</h2>
+                <p id="plan-route" class="text-xs text-slate-500">Samarinda ➔ Bali (2026-12-01 s/d 2026-12-04)</p>
+              </div>
+
+              <!-- Tombol Simpan -->
+              <div>
+                <button onclick="handleSavePlan()" id="btn-save"
+                  class="w-full sm:w-auto px-4 py-2.5 bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold rounded-xl flex items-center justify-center gap-2 shadow-sm transition">
+                  <i class="fa-solid fa-bookmark"></i> Simpan Rencana Ini
+                </button>
+              </div>
+            </div>
+
+            <!-- Kotak Ringkasan Anggaran & Biaya -->
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+              <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm">
+                <span class="text-xs text-slate-500 font-medium">Total Estimasi Biaya</span>
+                <p id="cost-total" class="text-xl font-extrabold text-slate-900 mt-0.5">Rp 0</p>
+                <div class="mt-1 flex items-center gap-1.5 text-xs" id="budget-status">
+                  <!-- Injected by JS -->
+                </div>
+              </div>
+              <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm">
+                <span class="text-xs text-slate-500 font-medium">Hotel & Akomodasi</span>
+                <p id="cost-hotel" class="text-base font-bold text-slate-900 mt-0.5">Rp 0</p>
+                <span id="cost-hotel-detail" class="text-[11px] text-slate-500">3 malam x 1 kamar</span>
+              </div>
+              <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm">
+                <span class="text-xs text-slate-500 font-medium">Transportasi PP & Tiket</span>
+                <p id="cost-transport" class="text-base font-bold text-slate-900 mt-0.5">Rp 0</p>
+                <span id="cost-tickets" class="text-[11px] text-slate-500">Tiket wisata: Rp 0</span>
+              </div>
+            </div>
+
+            <!-- Banner Peringatan / Warnings -->
+            <div id="plan-warnings" class="space-y-2">
+              <!-- Injected by JS -->
+            </div>
+
+            <!-- Timeline Jadwal Per Hari -->
+            <div class="bg-white rounded-2xl p-6 border border-slate-200 shadow-sm">
+              <h3 class="text-base font-bold text-slate-900 mb-4 flex items-center gap-2">
+                <i class="fa-solid fa-calendar-days text-brand-600"></i> Jadwal Harian
+              </h3>
+              <div id="plan-days-container" class="space-y-6">
+                <!-- Injected by JS -->
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 2. TAB: KATALOG DESTINASI -->
+    <section id="tab-destinations" class="hidden space-y-6">
+      <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-slate-200">
+        <div>
+          <h1 class="text-2xl font-bold text-slate-900">Katalog Destinasi Wisata</h1>
+          <p class="text-xs sm:text-sm text-slate-500">Jelajahi tempat wisata populer di Indonesia yang tersedia di Ruteku.</p>
+        </div>
+        <div class="flex flex-wrap items-center gap-2">
+          <!-- Filter Lokasi -->
+          <select id="filter-location" onchange="loadDestinations()"
+            class="px-3 py-2 bg-white border border-slate-200 rounded-xl text-xs font-semibold text-slate-700 focus:outline-none">
+            <option value="">Semua Lokasi</option>
+            <option value="Bali">Bali</option>
+            <option value="Yogyakarta">Yogyakarta</option>
+            <option value="Labuan Bajo">Labuan Bajo</option>
+            <option value="Derawan">Derawan</option>
+          </select>
+          <!-- Search input -->
+          <div class="relative">
+            <i class="fa-solid fa-magnifying-glass absolute left-3 top-2.5 text-slate-400 text-xs"></i>
+            <input type="text" id="filter-query" oninput="loadDestinations()" placeholder="Cari nama tempat..."
+              class="pl-8 pr-3 py-2 bg-white border border-slate-200 rounded-xl text-xs focus:ring-2 focus:ring-brand-500 focus:outline-none">
+          </div>
+        </div>
+      </div>
+
+      <!-- Grid Cards Destinasi -->
+      <div id="destinations-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+        <!-- Injected by JS -->
+      </div>
+    </section>
+
+    <!-- 3. TAB: RIWAYAT PERJALANAN TERSIMPAN -->
+    <section id="tab-history" class="hidden space-y-6">
+      <div class="pb-4 border-b border-slate-200">
+        <h1 class="text-2xl font-bold text-slate-900">Riwayat Perjalanan</h1>
+        <p class="text-xs sm:text-sm text-slate-500">Daftar rencana liburan yang telah Anda simpan ke akun.</p>
+      </div>
+
+      <!-- State Belum Login -->
+      <div id="history-login-notice" class="hidden bg-amber-50 border border-amber-200 rounded-2xl p-8 text-center">
+        <i class="fa-solid fa-lock text-3xl text-amber-500 mb-3"></i>
+        <h3 class="text-base font-bold text-amber-900">Perlu Masuk Akun</h3>
+        <p class="text-xs text-amber-700 mt-1 max-w-sm mx-auto">
+          Silakan login terlebih dahulu untuk melihat riwayat rencana perjalanan Anda.
+        </p>
+        <button onclick="openAuthModal('login')" class="mt-4 px-4 py-2 bg-amber-600 hover:bg-amber-700 text-white rounded-xl text-xs font-bold transition">
+          Masuk Sekarang
+        </button>
+      </div>
+
+      <!-- State Kosong -->
+      <div id="history-empty" class="hidden bg-white rounded-2xl border border-slate-200 p-12 text-center">
+        <i class="fa-solid fa-folder-open text-3xl text-slate-300 mb-3"></i>
+        <h3 class="text-base font-bold text-slate-800">Belum Ada Rencana Tersimpan</h3>
+        <p class="text-xs text-slate-500 mt-1">Rencana yang Anda simpan saat membuat itinerary akan muncul di sini.</p>
+        <button onclick="switchTab('plan')" class="mt-4 px-4 py-2 bg-brand-600 text-white rounded-xl text-xs font-bold transition">
+          Buat Rencana Baru
+        </button>
+      </div>
+
+      <!-- Daftar List Riwayat -->
+      <div id="history-list" class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <!-- Injected by JS -->
+      </div>
+    </section>
+
+  </main>
+
+  <!-- ================= MODAL AUTH (LOGIN / REGISTER) ================= -->
+  <div id="auth-modal" class="fixed inset-0 z-50 hidden bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4">
+    <div class="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl relative border border-slate-100">
+      <button onclick="closeAuthModal()" class="absolute right-4 top-4 text-slate-400 hover:text-slate-600 text-sm">
+        <i class="fa-solid fa-xmark text-lg"></i>
+      </button>
+
+      <!-- Tabs Modal -->
+      <div class="flex border-b border-slate-100 pb-3 mb-5 gap-4">
+        <button id="modal-tab-login" onclick="setAuthMode('login')" class="text-sm font-bold text-brand-600 border-b-2 border-brand-600 pb-2">
+          Masuk Akun
+        </button>
+        <button id="modal-tab-register" onclick="setAuthMode('register')" class="text-sm font-bold text-slate-400 hover:text-slate-700 pb-2">
+          Daftar Baru
+        </button>
+      </div>
+
+      <!-- Form Login/Register -->
+      <form id="auth-form" onsubmit="handleAuthSubmit(event)" class="space-y-4">
+        <div id="field-fullname" class="hidden">
+          <label class="block text-xs font-bold text-slate-700 mb-1">Nama Lengkap</label>
+          <input type="text" id="auth-name" placeholder="Nama Anda"
+            class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-brand-500 focus:outline-none">
+        </div>
+
+        <div>
+          <label class="block text-xs font-bold text-slate-700 mb-1">Alamat Email</label>
+          <input type="email" id="auth-email" required placeholder="nama@email.com"
+            class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-brand-500 focus:outline-none">
+        </div>
+
+        <div>
+          <label class="block text-xs font-bold text-slate-700 mb-1">Kata Sandi</label>
+          <input type="password" id="auth-password" required minlength="8" placeholder="Minimal 8 karakter"
+            class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-brand-500 focus:outline-none">
+        </div>
+
+        <div id="auth-error" class="hidden text-xs text-rose-600 bg-rose-50 p-2.5 rounded-lg border border-rose-200">
+        </div>
+
+        <button type="submit" id="auth-submit-btn"
+          class="w-full py-2.5 bg-brand-600 hover:bg-brand-700 text-white font-bold rounded-xl text-sm transition shadow-md shadow-brand-500/20">
+          Masuk
+        </button>
+      </form>
+    </div>
+  </div>
+
+  <!-- ================= MODAL DETAIL RIWAYAT ================= -->
+  <div id="detail-modal" class="fixed inset-0 z-50 hidden bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4">
+    <div class="bg-white rounded-2xl max-w-2xl w-full p-6 shadow-2xl relative border border-slate-100 max-h-[90vh] overflow-y-auto">
+      <button onclick="closeDetailModal()" class="absolute right-4 top-4 text-slate-400 hover:text-slate-600 text-sm">
+        <i class="fa-solid fa-xmark text-lg"></i>
+      </button>
+
+      <div id="detail-modal-content">
+        <!-- Rendered by JS -->
+      </div>
+    </div>
+  </div>
+
+  <!-- ================= TOAST NOTIFICATION ================= -->
+  <div id="toast" class="fixed bottom-5 right-5 z-50 hidden bg-slate-900 text-white px-4 py-3 rounded-xl shadow-xl text-xs font-semibold flex items-center gap-2 transition-all">
+    <i id="toast-icon" class="fa-solid fa-circle-check text-emerald-400"></i>
+    <span id="toast-text">Pesan notifikasi</span>
+  </div>
+
+  <!-- ================= JAVASCRIPT LOGIC ================= -->
+  <script>
+    const API_BASE = window.location.origin.includes('5500') || window.location.origin.includes('3000') 
+      ? 'http://localhost:8000' 
+      : window.location.origin;
+
+    let currentUser = null;
+    let currentPlan = null;
+    let authMode = 'login'; // 'login' | 'register'
+
+    // Format Rupiah
+    function formatRupiah(num) {
+      if (num === null || num === undefined) return 'Rp 0';
+      return 'Rp ' + Number(num).toLocaleString('id-ID');
+    }
+
+    // Toast Alert
+    function showToast(text, isError = false) {
+      const toast = document.getElementById('toast');
+      const icon = document.getElementById('toast-icon');
+      const msg = document.getElementById('toast-text');
+      msg.textContent = text;
+      if (isError) {
+        icon.className = 'fa-solid fa-circle-exclamation text-rose-400';
+      } else {
+        icon.className = 'fa-solid fa-circle-check text-emerald-400';
+      }
+      toast.classList.remove('hidden');
+      setTimeout(() => toast.classList.add('hidden'), 3500);
+    }
+
+    // Inisialisasi Tanggal Default (Besok s/d 4 hari lagi)
+    function initDates() {
+      const start = new Date();
+      start.setDate(start.getDate() + 7);
+      const end = new Date(start);
+      end.setDate(end.getDate() + 3);
+
+      document.getElementById('input-start-date').value = start.toISOString().split('T')[0];
+      document.getElementById('input-end-date').value = end.toISOString().split('T')[0];
+    }
+
+    // Tab Switcher
+    function switchTab(tab) {
+      ['plan', 'destinations', 'history'].forEach(t => {
+        document.getElementById(`tab-${t}`).classList.add('hidden');
+        const navBtn = document.getElementById(`nav-${t}`);
+        if (navBtn) {
+          navBtn.classList.remove('bg-white', 'text-brand-700', 'shadow-sm');
+          navBtn.classList.add('text-slate-600');
+        }
+      });
+      document.getElementById(`tab-${tab}`).classList.remove('hidden');
+      const activeNav = document.getElementById(`nav-${tab}`);
+      if (activeNav) {
+        activeNav.classList.add('bg-white', 'text-brand-700', 'shadow-sm');
+        activeNav.classList.remove('text-slate-600');
+      }
+
+      if (tab === 'destinations') loadDestinations();
+      if (tab === 'history') loadHistory();
+    }
+
+    // Render Auth Bar
+    function renderAuthUI() {
+      const box = document.getElementById('auth-box');
+      const token = localStorage.getItem('ruteku_token');
+      const name = localStorage.getItem('ruteku_user_name');
+
+      if (token && name) {
+        box.innerHTML = `
+          <div class="flex items-center gap-2">
+            <span class="text-xs font-bold text-slate-700 bg-slate-100 px-3 py-1.5 rounded-xl flex items-center gap-1.5">
+              <i class="fa-solid fa-user-check text-brand-600"></i> ${name}
+            </span>
+            <button onclick="handleLogout()" class="px-3 py-1.5 rounded-xl border border-slate-200 text-xs font-semibold text-rose-600 hover:bg-rose-50 transition">
+              <i class="fa-solid fa-arrow-right-from-bracket"></i> Keluar
+            </button>
+          </div>
+        `;
+      } else {
+        box.innerHTML = `
+          <button onclick="openAuthModal('login')" class="text-xs font-bold text-slate-700 hover:text-brand-600 px-3 py-2 transition">
+            Masuk
+          </button>
+          <button onclick="openAuthModal('register')" class="text-xs font-bold bg-brand-600 hover:bg-brand-700 text-white px-3.5 py-2 rounded-xl transition shadow-sm">
+            Daftar
+          </button>
+        `;
+      }
+    }
+
+    // Auth Modal Handlers
+    function openAuthModal(mode) {
+      authMode = mode;
+      setAuthMode(mode);
+      document.getElementById('auth-error').classList.add('hidden');
+      document.getElementById('auth-modal').classList.remove('hidden');
+    }
+    function closeAuthModal() {
+      document.getElementById('auth-modal').classList.add('hidden');
+    }
+    function setAuthMode(mode) {
+      authMode = mode;
+      const tabLogin = document.getElementById('modal-tab-login');
+      const tabReg = document.getElementById('modal-tab-register');
+      const nameField = document.getElementById('field-fullname');
+      const submitBtn = document.getElementById('auth-submit-btn');
+
+      if (mode === 'login') {
+        tabLogin.className = 'text-sm font-bold text-brand-600 border-b-2 border-brand-600 pb-2';
+        tabReg.className = 'text-sm font-bold text-slate-400 hover:text-slate-700 pb-2';
+        nameField.classList.add('hidden');
+        submitBtn.textContent = 'Masuk Sekarang';
+      } else {
+        tabReg.className = 'text-sm font-bold text-brand-600 border-b-2 border-brand-600 pb-2';
+        tabLogin.className = 'text-sm font-bold text-slate-400 hover:text-slate-700 pb-2';
+        nameField.classList.remove('hidden');
+        submitBtn.textContent = 'Daftar Akun Baru';
+      }
+    }
+
+    async function handleAuthSubmit(e) {
+      e.preventDefault();
+      const errBox = document.getElementById('auth-error');
+      errBox.classList.add('hidden');
+
+      const email = document.getElementById('auth-email').value;
+      const password = document.getElementById('auth-password').value;
+      const fullName = document.getElementById('auth-name').value;
+
+      try {
+        if (authMode === 'register') {
+          const res = await fetch(`${API_BASE}/auth/register`, {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({ email, password, full_name: fullName || 'User' })
+          });
+          const data = await res.json();
+          if (!res.ok) throw new Error(data.detail || 'Gagal registrasi');
+          showToast('Registrasi berhasil! Silakan masuk.');
+          setAuthMode('login');
+        } else {
+          const res = await fetch(`${API_BASE}/auth/login`, {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({ email, password })
+          });
+          const data = await res.json();
+          if (!res.ok) throw new Error(data.detail || 'Email atau password salah');
+          localStorage.setItem('ruteku_token', data.access_token);
+          localStorage.setItem('ruteku_user_name', data.full_name);
+          closeAuthModal();
+          renderAuthUI();
+          showToast(`Selamat datang, ${data.full_name}!`);
+        }
+      } catch (err) {
+        errBox.textContent = err.message;
+        errBox.classList.remove('hidden');
+      }
+    }
+
+    async function handleLogout() {
+      const token = localStorage.getItem('ruteku_token');
+      if (token) {
+        try {
+          await fetch(`${API_BASE}/auth/logout`, {
+            method: 'POST',
+            headers: {'Authorization': `Bearer ${token}`}
+          });
+        } catch (e) {}
+      }
+      localStorage.removeItem('ruteku_token');
+      localStorage.removeItem('ruteku_user_name');
+      renderAuthUI();
+      showToast('Anda telah keluar.');
+      switchTab('plan');
+    }
+
+    // GENERATE ITINERARY
+    async function handleGenerate(e) {
+      e.preventDefault();
+      const token = localStorage.getItem('ruteku_token');
+      if (!token) {
+        showToast('Silakan login terlebih dahulu untuk membuat itinerary.', true);
+        openAuthModal('login');
+        return;
+      }
+
+      const origin = document.getElementById('input-origin').value;
+      const destination = document.getElementById('input-destination').value;
+      const startDate = document.getElementById('input-start-date').value;
+      const endDate = document.getElementById('input-end-date').value;
+      const travelers = parseInt(document.getElementById('input-travelers').value);
+      const budget = parseInt(document.getElementById('input-budget').value);
+
+      const checkboxes = document.querySelectorAll('input[name="interest"]:checked');
+      const interests = Array.from(checkboxes).map(c => c.value);
+
+      // UI State
+      document.getElementById('plan-placeholder').classList.add('hidden');
+      document.getElementById('plan-result').classList.add('hidden');
+      document.getElementById('plan-loading').classList.remove('hidden');
+
+      try {
+        const res = await fetch(`${API_BASE}/itineraries/generate`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`
+          },
+          body: JSON.stringify({
+            origin, destination, start_date: startDate, end_date: endDate,
+            travelers, budget, interests
+          })
+        });
+
+        const plan = await res.json();
+        if (!res.ok) throw new Error(plan.detail || 'Gagal generate itinerary');
+
+        currentPlan = plan;
+        renderPlanResult(plan);
+        document.getElementById('plan-loading').classList.add('hidden');
+        document.getElementById('plan-result').classList.remove('hidden');
+        showToast('Itinerary berhasil disusun oleh sistem!');
+      } catch (err) {
+        document.getElementById('plan-loading').classList.add('hidden');
+        document.getElementById('plan-placeholder').classList.remove('hidden');
+        showToast(err.message, true);
+      }
+    }
+
+    // Render Hasil Plan
+    function renderPlanResult(plan) {
+      document.getElementById('plan-title').textContent = `Perjalanan ke ${plan.destination}`;
+      document.getElementById('plan-route').textContent = `${plan.origin} ➔ ${plan.destination} (${plan.start_date} s/d ${plan.end_date})`;
+      document.getElementById('text-duration').textContent = `${plan.days.length} Hari • ${plan.travelers} Peserta`;
+
+      const aiBadge = document.getElementById('badge-ai');
+      if (plan.ai_used) {
+        aiBadge.className = 'text-xs font-semibold px-2.5 py-0.5 rounded-full bg-emerald-100 text-emerald-800';
+        aiBadge.innerHTML = '<i class="fa-solid fa-sparkles mr-1"></i> OpenAI Digunakan';
+      } else {
+        aiBadge.className = 'text-xs font-semibold px-2.5 py-0.5 rounded-full bg-blue-100 text-blue-800';
+        aiBadge.innerHTML = '<i class="fa-solid fa-robot mr-1"></i> Algoritma Fallback Heuristik';
+      }
+
+      // Biaya
+      const cost = plan.cost;
+      document.getElementById('cost-total').textContent = formatRupiah(cost.total);
+      document.getElementById('cost-hotel').textContent = formatRupiah(cost.hotel.total);
+      document.getElementById('cost-hotel-detail').textContent = `${cost.hotel.nights} malam x ${cost.hotel.rooms} kamar`;
+      document.getElementById('cost-transport').textContent = formatRupiah(cost.transport.total);
+      document.getElementById('cost-tickets').textContent = `Tiket Masuk: ${formatRupiah(cost.tickets.total)}`;
+
+      const statusEl = document.getElementById('budget-status');
+      if (cost.over_budget) {
+        statusEl.innerHTML = `<span class="text-rose-600 font-bold"><i class="fa-solid fa-circle-exclamation"></i> Melebihi Anggaran (${formatRupiah(Math.abs(cost.difference))})</span>`;
+      } else {
+        statusEl.innerHTML = `<span class="text-emerald-600 font-bold"><i class="fa-solid fa-circle-check"></i> Sisa Anggaran: ${formatRupiah(cost.difference)}</span>`;
+      }
+
+      // Warnings
+      const warnBox = document.getElementById('plan-warnings');
+      warnBox.innerHTML = '';
+      if (plan.warnings && plan.warnings.length > 0) {
+        plan.warnings.forEach(w => {
+          warnBox.innerHTML += `
+            <div class="p-3 bg-amber-50 border border-amber-200 rounded-xl text-xs text-amber-800 flex items-start gap-2">
+              <i class="fa-solid fa-triangle-exclamation mt-0.5 text-amber-500"></i>
+              <span>${w}</span>
+            </div>
+          `;
+        });
+      }
+
+      // Days
+      const daysContainer = document.getElementById('plan-days-container');
+      daysContainer.innerHTML = '';
+
+      plan.days.forEach(day => {
+        let itemsHtml = '';
+        day.items.forEach(it => {
+          const harga = it.ticket_price && it.ticket_price.value !== null 
+            ? formatRupiah(it.ticket_price.value) 
+            : 'Gratis';
+          const stale = it.ticket_price && it.ticket_price.stale ? '<span class="text-[10px] text-amber-600 bg-amber-50 px-1.5 py-0.5 rounded">stale</span>' : '';
+
+          itemsHtml += `
+            <div class="flex items-start gap-3 py-2.5 border-b border-slate-100 last:border-none">
+              <div class="px-2.5 py-1 bg-slate-100 rounded-lg text-xs font-bold text-slate-700 whitespace-nowrap">
+                <i class="fa-regular fa-clock mr-1 text-slate-400"></i> ${it.time}
+              </div>
+              <div class="flex-grow">
+                <div class="flex items-center gap-2">
+                  <h5 class="text-sm font-bold text-slate-800">${it.name}</h5>
+                  <span class="text-[10px] px-2 py-0.5 rounded bg-slate-100 text-slate-600">${it.category}</span>
+                  ${stale}
+                </div>
+                ${it.note ? `<p class="text-xs text-slate-500 mt-0.5">${it.note}</p>` : ''}
+              </div>
+              <div class="text-right whitespace-nowrap">
+                <span class="text-xs font-bold text-slate-900">${harga}</span>
+                <span class="block text-[10px] text-slate-400">per orang</span>
+              </div>
+            </div>
+          `;
+        });
+
+        daysContainer.innerHTML += `
+          <div class="bg-slate-50 p-4 rounded-xl border border-slate-200/80">
+            <div class="flex items-center justify-between pb-2 mb-2 border-b border-slate-200">
+              <span class="text-xs font-extrabold uppercase tracking-wider text-brand-700">Hari ke-${day.day}</span>
+              <span class="text-xs text-slate-500">${day.items.length} Destinasi Wisata</span>
+            </div>
+            <div class="space-y-1">
+              ${itemsHtml}
+            </div>
+          </div>
+        `;
+      });
+    }
+
+    // SIMPAN PLAN KE DATABASE
+    async function handleSavePlan() {
+      const token = localStorage.getItem('ruteku_token');
+      if (!token || !currentPlan) return;
+
+      const btn = document.getElementById('btn-save');
+      btn.disabled = true;
+      btn.innerHTML = '<i class="fa-solid fa-spinner animate-spin"></i> Menyimpan...';
+
+      try {
+        const res = await fetch(`${API_BASE}/itineraries`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`
+          },
+          body: JSON.stringify({
+            plan_id: currentPlan.plan_id,
+            title: `Liburan ke ${currentPlan.destination} (${currentPlan.days.length} Hari)`
+          })
+        });
+
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.detail || 'Gagal menyimpan rencana');
+        showToast('Rencana berhasil disimpan ke riwayat!');
+        btn.innerHTML = '<i class="fa-solid fa-check"></i> Tersimpan!';
+        setTimeout(() => {
+          btn.disabled = false;
+          btn.innerHTML = '<i class="fa-solid fa-bookmark"></i> Simpan Rencana Ini';
+        }, 2000);
+      } catch (err) {
+        showToast(err.message, true);
+        btn.disabled = false;
+        btn.innerHTML = '<i class="fa-solid fa-bookmark"></i> Simpan Rencana Ini';
+      }
+    }
+
+    // LOAD DESTINASI (KATALOG)
+    async function loadDestinations() {
+      const loc = document.getElementById('filter-location').value;
+      const q = document.getElementById('filter-query').value;
+      const grid = document.getElementById('destinations-grid');
+
+      grid.innerHTML = '<div class="col-span-full text-center py-10 text-slate-400 text-sm"><i class="fa-solid fa-spinner animate-spin mr-2"></i> Memuat destinasi...</div>';
+
+      try {
+        const params = new URLSearchParams();
+        if (loc) params.append('location', loc);
+        if (q) params.append('q', q);
+
+        const res = await fetch(`${API_BASE}/destinations?${params.toString()}`);
+        const data = await res.json();
+
+        if (data.length === 0) {
+          grid.innerHTML = '<div class="col-span-full text-center py-12 text-slate-500 text-sm">Tidak ditemukan destinasi yang sesuai.</div>';
+          return;
+        }
+
+        grid.innerHTML = data.map(d => `
+          <div class="bg-white rounded-2xl border border-slate-200 p-5 shadow-sm hover:shadow-md transition">
+            <div class="flex items-start justify-between gap-2">
+              <span class="text-xs font-bold px-2.5 py-1 rounded-lg bg-emerald-50 text-emerald-700">${d.category}</span>
+              <span class="text-xs text-slate-500 font-medium"><i class="fa-solid fa-location-dot mr-1 text-slate-400"></i> ${d.location}</span>
+            </div>
+            <h4 class="text-base font-bold text-slate-900 mt-3">${d.name}</h4>
+            <p class="text-xs text-slate-500 mt-1 line-clamp-2">${d.description || 'Destinasi wisata unggulan di ' + d.location}</p>
+            <div class="mt-4 pt-3 border-t border-slate-100 flex items-center justify-between text-xs">
+              <span class="text-slate-400">Tiket Masuk:</span>
+              <span class="font-extrabold text-slate-900">${d.price_estimate ? formatRupiah(d.price_estimate) : 'Gratis'}</span>
+            </div>
+          </div>
+        `).join('');
+      } catch (err) {
+        grid.innerHTML = `<div class="col-span-full text-center py-8 text-rose-500 text-xs">${err.message}</div>`;
+      }
+    }
+
+    // LOAD RIWAYAT
+    async function loadHistory() {
+      const token = localStorage.getItem('ruteku_token');
+      const notice = document.getElementById('history-login-notice');
+      const empty = document.getElementById('history-empty');
+      const list = document.getElementById('history-list');
+
+      notice.classList.add('hidden');
+      empty.classList.add('hidden');
+      list.innerHTML = '';
+
+      if (!token) {
+        notice.classList.remove('hidden');
+        return;
+      }
+
+      list.innerHTML = '<div class="col-span-full text-center py-10 text-slate-400 text-sm"><i class="fa-solid fa-spinner animate-spin mr-2"></i> Mengambil riwayat...</div>';
+
+      try {
+        const res = await fetch(`${API_BASE}/itineraries`, {
+          headers: {'Authorization': `Bearer ${token}`}
+        });
+        const data = await res.json();
+
+        if (data.length === 0) {
+          list.innerHTML = '';
+          empty.classList.remove('hidden');
+          return;
+        }
+
+        list.innerHTML = data.map(item => `
+          <div class="bg-white rounded-2xl border border-slate-200 p-5 shadow-sm hover:border-brand-500/50 transition">
+            <div class="flex items-center justify-between">
+              <span class="text-xs font-bold text-brand-600 bg-brand-50 px-2.5 py-1 rounded-lg">
+                <i class="fa-solid fa-map-pin mr-1"></i> ${item.destination}
+              </span>
+              <span class="text-[11px] text-slate-400">${item.start_date} s/d ${item.end_date}</span>
+            </div>
+            <h4 class="text-base font-bold text-slate-900 mt-2">${item.title}</h4>
+            <div class="mt-3 pt-3 border-t border-slate-100 flex items-center justify-between">
+              <div>
+                <span class="text-[11px] text-slate-400 block">Total Biaya:</span>
+                <span class="text-sm font-extrabold text-slate-900">${formatRupiah(item.total_cost)}</span>
+              </div>
+              <button onclick="viewHistoryDetail('${item.id}')"
+                class="px-3.5 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold rounded-xl transition">
+                Lihat Detail <i class="fa-solid fa-arrow-right ml-1"></i>
+              </button>
+            </div>
+          </div>
+        `).join('');
+      } catch (err) {
+        list.innerHTML = `<div class="col-span-full text-center py-8 text-rose-500 text-xs">${err.message}</div>`;
+      }
+    }
+
+    async function viewHistoryDetail(id) {
+      const token = localStorage.getItem('ruteku_token');
+      try {
+        const res = await fetch(`${API_BASE}/itineraries/${id}`, {
+          headers: {'Authorization': `Bearer ${token}`}
+        });
+        const plan = await res.json();
+        const content = document.getElementById('detail-modal-content');
+
+        let daysHtml = '';
+        plan.days.forEach(d => {
+          let itHtml = d.items.map(it => `
+            <div class="py-1.5 flex justify-between text-xs">
+              <span><strong>${it.time}</strong> • ${it.name} (${it.category})</span>
+              <span class="font-bold">${it.ticket_price && it.ticket_price.value ? formatRupiah(it.ticket_price.value) : 'Gratis'}</span>
+            </div>
+          `).join('');
+
+          daysHtml += `
+            <div class="bg-slate-50 p-3 rounded-xl border border-slate-200 mb-2">
+              <span class="text-xs font-bold text-brand-700">Hari ke-${d.day}</span>
+              <div class="mt-1 divide-y divide-slate-100">${itHtml}</div>
+            </div>
+          `;
+        });
+
+        content.innerHTML = `
+          <h3 class="text-lg font-bold text-slate-900">${plan.title}</h3>
+          <p class="text-xs text-slate-500 mb-4">${plan.origin} ➔ ${plan.destination} (${plan.start_date} s/d ${plan.end_date}) • ${plan.travelers} Peserta</p>
+          <div class="grid grid-cols-2 gap-2 mb-4 text-xs bg-slate-100 p-3 rounded-xl">
+            <div>Total Estimasi: <strong class="text-slate-900">${formatRupiah(plan.cost.total)}</strong></div>
+            <div>Anggaran Awal: <strong class="text-slate-900">${formatRupiah(plan.budget)}</strong></div>
+          </div>
+          <h4 class="text-xs font-bold text-slate-700 uppercase tracking-wider mb-2">Jadwal Perjalanan</h4>
+          <div class="max-h-60 overflow-y-auto space-y-2 pr-1">${daysHtml}</div>
+        `;
+
+        document.getElementById('detail-modal').classList.remove('hidden');
+      } catch (err) {
+        showToast('Gagal memuat detail itinerary', true);
+      }
+    }
+
+    function closeDetailModal() {
+      document.getElementById('detail-modal').classList.add('hidden');
+    }
+
+    // Run on startup
+    window.addEventListener('DOMContentLoaded', () => {
+      initDates();
+      renderAuthUI();
+    });
+  </script>
+</body>
+</html>
