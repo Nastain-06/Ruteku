@@ -9,7 +9,7 @@ try:
 except Exception:
     import fakeredis
     r = fakeredis.FakeRedis(decode_responses=True)
-    print("⚠ Redis tidak tersedia, menggunakan fakeredis (data cache hilang saat restart)")
+    print("[INFO] Redis tidak tersedia, menggunakan fakeredis (data cache hilang saat restart)")
 
 
 def get_json(key: str):
