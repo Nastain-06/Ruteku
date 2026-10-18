@@ -2,8 +2,7 @@
 
 > **Tugas Besar / UTS Mata Kuliah Implementasi & Pengujian Perangkat Lunak (IPPL)**  
 > **Identitas Pengembang**: Nasta'in (NIM: 11241081)  
-> **Tautan Video Presentasi & Demo**: [Tonton Video Demo di YouTube](
->(https://youtu.be/8cZWcUy8K04?si=fnklFwoN_IK_vGy2))
+> **Tautan Video Presentasi & Demo**: [(https://youtu.be/8cZWcUy8K04?si=fnklFwoN_IK_vGy2)]
 
 ---
 
