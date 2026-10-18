@@ -1,11 +1,13 @@
 """Uji alur utama tanpa Postgres/Redis asli: sqlite + fakeredis.  Jalankan: python smoke_test.py"""
 import os
+if os.path.exists("smoke.db"):
+    os.remove("smoke.db")
 os.environ["DATABASE_URL"] = "sqlite:///./smoke.db"
 import fakeredis
 from app import cache
 cache.r = fakeredis.FakeRedis(decode_responses=True)
 from fastapi.testclient import TestClient
-from app.main import app
+from app.main import app, engine
 from app.config import settings
 
 with TestClient(app) as c:
@@ -33,8 +35,10 @@ with TestClient(app) as c:
     assert c.post("/auth/logout", headers=H).status_code == 200
     assert c.get("/itineraries", headers=H).status_code == 401  # token di-blacklist
 print("SEMUA UJI LULUS")
+engine.dispose()
 try:
     os.remove("smoke.db")
 except OSError:
     pass
+
 
