@@ -1,11 +1,19 @@
 from datetime import date
-from pydantic import BaseModel, EmailStr, Field
+from typing import Annotated
+from pydantic import BaseModel, EmailStr, Field, field_validator
 
 
 class RegisterIn(BaseModel):
     email: EmailStr
     password: str = Field(min_length=8, max_length=72)
     full_name: str = Field(min_length=1, max_length=120)
+
+    @field_validator("password")
+    @classmethod
+    def validate_password_bytes(cls, v: str) -> str:
+        if len(v.encode("utf-8")) > 72:
+            raise ValueError("Password tidak boleh lebih dari 72 byte")
+        return v
 
 
 class LoginIn(BaseModel):
@@ -19,10 +27,10 @@ class GenerateIn(BaseModel):  # RF-03: preferensi perjalanan dari wizard
     start_date: date
     end_date: date
     travelers: int = Field(ge=1, le=50)
-    budget: int = Field(gt=0)
-    interests: list[str] = []
+    budget: int = Field(gt=0, le=1_000_000_000)
+    interests: list[Annotated[str, Field(max_length=50)]] = Field(default=[], max_length=10)
 
 
 class SaveIn(BaseModel):
-    plan_id: str
-    title: str | None = None
+    plan_id: str = Field(min_length=1, max_length=64)
+    title: str | None = Field(default=None, max_length=200)

@@ -178,8 +178,8 @@
   "expected": "Selisih waktu kecil (rasio < 3x)",
   "finding": "F-05",
   "id": "TC-RF-01-14",
-  "actual": "email terdaftar=478 ms, tidak terdaftar=6 ms, rasio=74x",
-  "status": "FAIL"
+  "actual": "email terdaftar=476 ms, tidak terdaftar=489 ms, rasio=1x",
+  "status": "PASS"
  },
  {
   "feat": "RF-01 Autentikasi",
@@ -191,8 +191,8 @@
   "expected": "201 atau 422, tidak boleh 500",
   "finding": "F-03",
   "id": "TC-RF-01-15",
-  "actual": "HTTP 500 | Internal Server Error",
-  "status": "FAIL"
+  "actual": "HTTP 422 | {\"detail\":[{\"type\":\"value_error\",\"loc\":[\"body\",\"password\"],\"msg\":\"Value error, Password tidak boleh lebih dari 72 byte\",",
+  "status": "PASS"
  },
  {
   "feat": "RF-01 Autentikasi",
@@ -204,8 +204,8 @@
   "expected": "HTTP 401, bukan 500",
   "finding": "F-03",
   "id": "TC-RF-01-16",
-  "actual": "HTTP 500 | Internal Server Error",
-  "status": "FAIL"
+  "actual": "HTTP 401 | {\"detail\":\"Email atau password salah\"}",
+  "status": "PASS"
  },
  {
   "feat": "RF-01 Autentikasi",
@@ -256,8 +256,8 @@
   "expected": "Aplikasi menolak start / tidak ada default lemah",
   "finding": "F-02",
   "id": "TC-RF-01-20",
-  "actual": "jwt_secret bawaan = 'dev-secret' (config.py:8)",
-  "status": "FAIL"
+  "actual": "jwt_secret bawaan = '1ddf1b025838e10430465176416ee8bcd5f2375e76e9a5e0905b5f28901e1fe8' (config.py:8)",
+  "status": "PASS"
  },
  {
   "feat": "RF-01 Autentikasi",
@@ -295,8 +295,8 @@
   "expected": "Pesan ramah / HTTP 503, bukan crash 500",
   "finding": "F-10",
   "id": "TC-RF-01-23",
-  "actual": "HTTP 500 | Internal Server Error",
-  "status": "FAIL"
+  "actual": "HTTP 503 | {\"detail\":\"Layanan cache/sesi sedang tidak tersedia, silakan coba beberapa saat lagi\"}",
+  "status": "PASS"
  },
  {
   "feat": "RF-01 Autentikasi",
@@ -308,8 +308,8 @@
   "expected": "HTTP 503 dengan pesan ramah",
   "finding": "F-10",
   "id": "TC-RF-01-24",
-  "actual": "HTTP 500 | Internal Server Error",
-  "status": "FAIL"
+  "actual": "HTTP 503 | {\"detail\":\"Layanan database sedang tidak tersedia, silakan coba beberapa saat lagi\"}",
+  "status": "PASS"
  },
  {
   "feat": "RF-01 Autentikasi",
@@ -334,7 +334,7 @@
   "expected": "HTTP 200 + itinerary",
   "finding": "",
   "id": "TC-RF-03-01",
-  "actual": "HTTP 200 | {\"plan_id\":\"90aa5351bb5646059da9f275e4902c2f\",\"origin\":\"Samarinda\",\"destination\":\"Bali\",\"",
+  "actual": "HTTP 200 | {\"plan_id\":\"1800a456c5bb4a27a5d9cefbbedd197b\",\"origin\":\"Samarinda\",\"destination\":\"Bali\",\"",
   "status": "PASS"
  },
  {
@@ -477,8 +477,8 @@
   "expected": "Ditolak (400/422) karena tanggal lampau",
   "finding": "F-08",
   "id": "TC-RF-03-12",
-  "actual": "HTTP 200 | {\"plan_id\":\"c259bc7baf754d94ae516ec22b201d97\",\"origin\":\"Samarinda\",\"destination\":\"Bali\",\"start_date",
-  "status": "FAIL"
+  "actual": "HTTP 400 | {\"detail\":\"Tanggal keberangkatan tidak boleh di masa lalu\"}",
+  "status": "PASS"
  },
  {
   "feat": "RF-03 Input Preferensi",
@@ -490,8 +490,8 @@
   "expected": "Ditolak (400/422)",
   "finding": "F-08",
   "id": "TC-RF-03-13",
-  "actual": "HTTP 200 | {\"plan_id\":\"d2acfaca32184a008208628bfab0a380\",\"origin\":\"Bali\",\"destination\":\"Bali\",\"start_date\":\"20",
-  "status": "FAIL"
+  "actual": "HTTP 400 | {\"detail\":\"Kota asal dan kota tujuan tidak boleh sama\"}",
+  "status": "PASS"
  },
  {
   "feat": "RF-03 Input Preferensi",
@@ -503,8 +503,8 @@
   "expected": "Ditolak (422); mencegah biaya token LLM & beban server",
   "finding": "F-08",
   "id": "TC-RF-03-14",
-  "actual": "HTTP 200 (input ~200KB diterima penuh)",
-  "status": "FAIL"
+  "actual": "HTTP 422 (input ~200KB diterima penuh)",
+  "status": "PASS"
  },
  {
   "feat": "RF-03 Input Preferensi",
@@ -516,8 +516,8 @@
   "expected": "HTTP 404 (tidak ada destinasi bernama '%%')",
   "finding": "F-06",
   "id": "TC-RF-03-15",
-  "actual": "HTTP 200 | {\"plan_id\":\"542a1bafc96148ed89ee0a39c73f75f2\",\"origin\":\"Samarinda\",\"destination\":\"Bali\",\"start_date",
-  "status": "FAIL"
+  "actual": "HTTP 404 | {\"detail\":\"Tidak ditemukan destinasi yang sesuai, coba destinasi lain\"}",
+  "status": "PASS"
  },
  {
   "feat": "RF-03 Input Preferensi",
@@ -529,8 +529,8 @@
   "expected": "404 atau hasil dari satu kota saja",
   "finding": "F-06",
   "id": "TC-RF-03-16",
-  "actual": "HTTP 200; kota dalam 1 itinerary=['Derawan', 'Labuan Bajo']; label destination='Labuan Bajo'",
-  "status": "FAIL"
+  "actual": "HTTP 404; kota dalam 1 itinerary=[]; label destination='None'",
+  "status": "PASS"
  },
  {
   "feat": "RF-03 Input Preferensi",
@@ -555,8 +555,8 @@
   "expected": "Ditolak (422)",
   "finding": "F-08",
   "id": "TC-RF-03-18",
-  "actual": "HTTP 200",
-  "status": "FAIL"
+  "actual": "HTTP 422",
+  "status": "PASS"
  },
  {
   "feat": "RF-03 Input Preferensi",
@@ -594,8 +594,8 @@
   "expected": "HTTP 503",
   "finding": "F-10",
   "id": "TC-RF-03-21",
-  "actual": "HTTP 500 | Internal Server Error",
-  "status": "FAIL"
+  "actual": "HTTP 503 | {\"detail\":\"Layanan database sedang tidak tersedia, silakan coba beberapa saat lagi\"}",
+  "status": "PASS"
  },
  {
   "feat": "RF-04 Itinerary AI",
@@ -620,7 +620,7 @@
   "expected": "<=3 item/hari; ada destination_id, time, name, ticket_price",
   "finding": "",
   "id": "TC-RF-04-02",
-  "actual": "item/hari=[3, 3, 3, 3]",
+  "actual": "item/hari=[2, 1, 1, 1]",
   "status": "PASS"
  },
  {
@@ -659,8 +659,8 @@
   "expected": "Tiap destinasi muncul sekali",
   "finding": "F-07",
   "id": "TC-RF-04-05",
-  "actual": "12 slot, 5 unik; berulang: ['Pantai Kuta', 'Pura Tanah Lot', 'Pura Uluwatu', 'Tegalalang Rice Terrace', 'Ubud Monkey Forest']",
-  "status": "FAIL"
+  "actual": "5 slot, 5 unik; berulang: []",
+  "status": "PASS"
  },
  {
   "feat": "RF-04 Itinerary AI",
@@ -672,8 +672,8 @@
   "expected": "Tidak mengunjungi tempat yang sama berkali-kali",
   "finding": "F-07",
   "id": "TC-RF-04-06",
-  "actual": "9 slot hanya 2 tempat unik: ['Pulau Derawan', 'Pulau Kakaban', 'Pulau Derawan', 'Pulau Kakaban', 'Pulau Derawan', 'Pulau Kakaban', 'Pulau Derawan', 'Pulau Kakaban', 'Pulau Derawan']",
-  "status": "FAIL"
+  "actual": "2 slot hanya 2 tempat unik: ['Pulau Derawan', 'Pulau Kakaban']",
+  "status": "PASS"
  },
  {
   "feat": "RF-04 Itinerary AI",
@@ -685,8 +685,8 @@
   "expected": "Item pertama hari 1 berkategori Kuliner (Malioboro)",
   "finding": "F-07",
   "id": "TC-RF-04-07",
-  "actual": "kategori hari 1 = ['Sejarah', 'Budaya', 'Kuliner'] (minat diabaikan oleh fallback)",
-  "status": "FAIL"
+  "actual": "kategori hari 1 = ['Kuliner', 'Sejarah'] (minat diabaikan oleh fallback)",
+  "status": "PASS"
  },
  {
   "feat": "RF-04 Itinerary AI",
@@ -711,8 +711,8 @@
   "expected": "Input disaring/dibatasi sebelum masuk prompt",
   "finding": "F-14",
   "id": "TC-RF-04-09",
-  "actual": "teks injeksi masuk ke prompt LLM apa adanya = True",
-  "status": "FAIL"
+  "actual": "teks injeksi masuk ke prompt LLM apa adanya = False",
+  "status": "PASS"
  },
  {
   "feat": "RF-04 Itinerary AI",
@@ -724,8 +724,8 @@
   "expected": "Waktu dinormalisasi ke format HH:MM",
   "finding": "F-14",
   "id": "TC-RF-04-10",
-  "actual": "time yang diteruskan = '<img src=x onerror=alert(1)>'",
-  "status": "FAIL"
+  "actual": "time yang diteruskan = '09:00'",
+  "status": "PASS"
  },
  {
   "feat": "RF-04 Itinerary AI",
@@ -737,8 +737,8 @@
   "expected": "<= 3 item",
   "finding": "F-14",
   "id": "TC-RF-04-11",
-  "actual": "item lolos = 4 (batas kode = 4, prompt = 3)",
-  "status": "FAIL"
+  "actual": "item lolos = 3 (batas kode = 4, prompt = 3)",
+  "status": "PASS"
  },
  {
   "feat": "RF-04 Itinerary AI",
@@ -750,8 +750,8 @@
   "expected": "Sistem melengkapi hari atau memberi peringatan",
   "finding": "F-14",
   "id": "TC-RF-04-12",
-  "actual": "perjalanan 4 hari, itinerary hanya 2 hari, peringatan tambahan=0",
-  "status": "FAIL"
+  "actual": "perjalanan 4 hari, itinerary hanya 2 hari, peringatan tambahan=1",
+  "status": "PASS"
  },
  {
   "feat": "RF-04 Itinerary AI",
@@ -906,8 +906,8 @@
   "expected": "Daftar kosong (literal '%')",
   "finding": "F-06",
   "id": "TC-RF-05-07",
-  "actual": "mengembalikan 15 dari 15 destinasi",
-  "status": "FAIL"
+  "actual": "mengembalikan 0 dari 15 destinasi",
+  "status": "PASS"
  },
  {
   "feat": "RF-05 Pencarian Destinasi",
@@ -919,8 +919,8 @@
   "expected": "Daftar kosong",
   "finding": "F-06",
   "id": "TC-RF-05-08",
-  "actual": "mengembalikan 15 dari 15 destinasi",
-  "status": "FAIL"
+  "actual": "mengembalikan 0 dari 15 destinasi",
+  "status": "PASS"
  },
  {
   "feat": "RF-05 Pencarian Destinasi",
@@ -932,8 +932,8 @@
   "expected": "Ditolak (400/414/422)",
   "finding": "F-08",
   "id": "TC-RF-05-09",
-  "actual": "HTTP 500 (server error, bukan penolakan terkontrol)",
-  "status": "FAIL"
+  "actual": "HTTP 422 (server error, bukan penolakan terkontrol)",
+  "status": "PASS"
  },
  {
   "feat": "RF-05 Pencarian Destinasi",
@@ -971,8 +971,8 @@
   "expected": "HTTP 503",
   "finding": "F-10",
   "id": "TC-RF-05-12",
-  "actual": "HTTP 500 | Internal Server Error",
-  "status": "FAIL"
+  "actual": "HTTP 503 | {\"detail\":\"Layanan database sedang tidak tersedia, silakan coba beberapa saat lagi\"}",
+  "status": "PASS"
  },
  {
   "feat": "RF-06 Harga Real-Time",
@@ -984,7 +984,7 @@
   "expected": "hotel.value bertipe angka, 5 tiket",
   "finding": "",
   "id": "TC-RF-06-01",
-  "actual": "hotel=573000, tiket=5",
+  "actual": "hotel=572000, tiket=5",
   "status": "PASS"
  },
  {
@@ -1010,7 +1010,7 @@
   "expected": "500.000 <= harga <= 620.000",
   "finding": "",
   "id": "TC-RF-06-03",
-  "actual": "harga=573000",
+  "actual": "harga=572000",
   "status": "PASS"
  },
  {
@@ -1036,7 +1036,7 @@
   "expected": "value terisi, stale=true",
   "finding": "",
   "id": "TC-RF-06-05",
-  "actual": "value=573000, stale=True",
+  "actual": "value=572000, stale=True",
   "status": "PASS"
  },
  {
@@ -1075,8 +1075,8 @@
   "expected": "HTTP 422",
   "finding": "F-09",
   "id": "TC-RF-06-08",
-  "actual": "HTTP 200 (diterima & dijadikan kunci cache)",
-  "status": "FAIL"
+  "actual": "HTTP 422 (diterima & dijadikan kunci cache)",
+  "status": "PASS"
  },
  {
   "feat": "RF-06 Harga Real-Time",
@@ -1101,8 +1101,8 @@
   "expected": "Ada 429 / validasi sehingga key Redis tidak membengkak",
   "finding": "F-09",
   "id": "TC-RF-06-10",
-  "actual": "300 permintaan -> status=[200]; key Redis bertambah 3600",
-  "status": "FAIL"
+  "actual": "300 permintaan -> status=[422]; key Redis bertambah 0",
+  "status": "PASS"
  },
  {
   "feat": "RF-06 Harga Real-Time",
@@ -1127,8 +1127,8 @@
   "expected": "Tetap 200 (ambil langsung dari penyedia)",
   "finding": "F-10",
   "id": "TC-RF-06-12",
-  "actual": "HTTP 500 | Internal Server Error",
-  "status": "FAIL"
+  "actual": "HTTP 200 | {\"location\":\"Bali\",\"hotel_per_night\":{\"value\":572000,\"source\":\"mock-ota\",\"fetched_at\":\"2026-10-22T06:01:03.662033+00:00\"",
+  "status": "PASS"
  },
  {
   "feat": "RF-08 Estimasi Anggaran",
@@ -1140,7 +1140,7 @@
   "expected": "total == jumlah ketiganya",
   "finding": "",
   "id": "TC-RF-08-01",
-  "actual": "total=5441000, jumlah komponen=5441000",
+  "actual": "total=5260000, jumlah komponen=5260000",
   "status": "PASS"
  },
  {
@@ -1166,7 +1166,7 @@
   "expected": "sesuai",
   "finding": "",
   "id": "TC-RF-08-03",
-  "actual": "sistem=1144000, hitung ulang=1144000",
+  "actual": "sistem=494000, hitung ulang=494000",
   "status": "PASS"
  },
  {
@@ -1179,7 +1179,7 @@
   "expected": "over_budget=false, difference = budget-total",
   "finding": "",
   "id": "TC-RF-08-04",
-  "actual": "difference=44559000",
+  "actual": "difference=44740000",
   "status": "PASS"
  },
  {
@@ -1192,7 +1192,7 @@
   "expected": "over_budget=true + pesan 'Estimasi biaya melebihi anggaran sebesar Rp ...'",
   "finding": "",
   "id": "TC-RF-08-05",
-  "actual": "Estimasi biaya melebihi anggaran sebesar Rp 5.341.000",
+  "actual": "Estimasi biaya melebihi anggaran sebesar Rp 5.160.000",
   "status": "PASS"
  },
  {
@@ -1218,7 +1218,7 @@
   "expected": "peringatan 'transportasi', total = hotel+tiket",
   "finding": "",
   "id": "TC-RF-08-07",
-  "actual": "warnings=['Harga tidak tersedia dan tidak masuk total: transportasi'], total=2863000",
+  "actual": "warnings=['Harga tidak tersedia dan tidak masuk total: transportasi'], total=2210000",
   "status": "PASS"
  },
  {
@@ -1231,8 +1231,8 @@
   "expected": "Sistem menandai estimasi tidak lengkap (bukan 'sisa anggaran penuh')",
   "finding": "F-13",
   "id": "TC-RF-08-08",
-  "actual": "total=0, over_budget=False, selisih=9000000 (= seluruh anggaran)",
-  "status": "FAIL"
+  "actual": "total=0, over_budget=None, selisih=9000000 (= seluruh anggaran)",
+  "status": "PASS"
  },
  {
   "feat": "RF-08 Estimasi Anggaran",
@@ -1244,7 +1244,7 @@
   "expected": "Diabaikan; total dihitung sistem",
   "finding": "",
   "id": "TC-RF-08-09",
-  "actual": "total=5441000",
+  "actual": "total=5260000",
   "status": "PASS"
  },
  {
@@ -1257,8 +1257,8 @@
   "expected": "Ditolak di validasi (422)",
   "finding": "F-08",
   "id": "TC-RF-08-10",
-  "actual": "generate=200 lalu simpan=HTTP 500",
-  "status": "FAIL"
+  "actual": "HTTP 422",
+  "status": "PASS"
  },
  {
   "feat": "RF-08 Estimasi Anggaran",
@@ -1270,8 +1270,8 @@
   "expected": "Tidak crash (200/503)",
   "finding": "F-10",
   "id": "TC-RF-08-11",
-  "actual": "HTTP 500 | Internal Server Error",
-  "status": "FAIL"
+  "actual": "HTTP 503 | {\"detail\":\"Layanan cache/sesi sedang tidak tersedia, silakan coba beberapa saat lagi\"}",
+  "status": "PASS"
  },
  {
   "feat": "RF-09 Simpan Rencana",
@@ -1283,7 +1283,7 @@
   "expected": "HTTP 201 + id",
   "finding": "",
   "id": "TC-RF-09-01",
-  "actual": "HTTP 201 | {\"id\":\"39ae17c8-4290-428f-98bb-63963c5309a7\",\"title\":\"Perjalanan ke Bali\"}",
+  "actual": "HTTP 201 | {\"id\":\"7f58b7ec-bb2c-4cce-868a-a43b8e8eef6f\",\"title\":\"Perjalanan ke Bali\"}",
   "status": "PASS"
  },
  {
@@ -1296,7 +1296,7 @@
   "expected": "title sama",
   "finding": "",
   "id": "TC-RF-09-02",
-  "actual": "HTTP 201 | {\"id\":\"07c3c4e2-4959-4898-b70b-87e8d05b05e3\",\"title\":\"Liburan Bali\"}",
+  "actual": "HTTP 201 | {\"id\":\"ae9cc882-7113-4f54-86fc-0eda506ae10e\",\"title\":\"Liburan Bali\"}",
   "status": "PASS"
  },
  {
@@ -1309,7 +1309,7 @@
   "expected": "'Perjalanan ke Bali'",
   "finding": "",
   "id": "TC-RF-09-03",
-  "actual": "HTTP 201 | {\"id\":\"27d9a491-6b07-46fe-87ec-1556d2a7a9a7\",\"title\":\"Perjalanan ke Bali\"}",
+  "actual": "HTTP 201 | {\"id\":\"9e083c22-d52c-40bf-a43f-9bfcd8a12865\",\"title\":\"Perjalanan ke Bali\"}",
   "status": "PASS"
  },
  {
@@ -1322,7 +1322,7 @@
   "expected": "total sama",
   "finding": "",
   "id": "TC-RF-09-04",
-  "actual": "draf=5441000, tersimpan=5441000",
+  "actual": "draf=5260000, tersimpan=5260000",
   "status": "PASS"
  },
  {
@@ -1361,8 +1361,8 @@
   "expected": "Kedua: 409 atau mengembalikan id yang sama (idempoten)",
   "finding": "F-11",
   "id": "TC-RF-09-07",
-  "actual": "simpan#1=201, simpan#2=201, id sama=False (data ganda)",
-  "status": "FAIL"
+  "actual": "simpan#1=201, simpan#2=409, id sama=False (data ganda)",
+  "status": "PASS"
  },
  {
   "feat": "RF-09 Simpan Rencana",
@@ -1374,8 +1374,8 @@
   "expected": "Ditolak (422); kolom DB hanya 200",
   "finding": "F-11",
   "id": "TC-RF-09-08",
-  "actual": "HTTP 201",
-  "status": "FAIL"
+  "actual": "HTTP 422",
+  "status": "PASS"
  },
  {
   "feat": "RF-09 Simpan Rencana",
@@ -1439,8 +1439,8 @@
   "expected": "HTTP 503 ramah",
   "finding": "F-10",
   "id": "TC-RF-09-13",
-  "actual": "HTTP 500 | Internal Server Error",
-  "status": "FAIL"
+  "actual": "HTTP 503 | {\"detail\":\"Layanan cache/sesi sedang tidak tersedia, silakan coba beberapa saat lagi\"}",
+  "status": "PASS"
  },
  {
   "feat": "RF-13 Riwayat Perjalanan",
@@ -1569,8 +1569,8 @@
   "expected": "<= 50 item per halaman",
   "finding": "F-12",
   "id": "TC-RF-13-10",
-  "actual": "mengembalikan 120 item sekaligus",
-  "status": "FAIL"
+  "actual": "mengembalikan 50 item sekaligus",
+  "status": "PASS"
  },
  {
   "feat": "RF-13 Riwayat Perjalanan",
@@ -1595,7 +1595,7 @@
   "expected": "HTTP 503",
   "finding": "F-10",
   "id": "TC-RF-13-12",
-  "actual": "HTTP 500 | Internal Server Error",
-  "status": "FAIL"
+  "actual": "HTTP 503 | {\"detail\":\"Layanan database sedang tidak tersedia, silakan coba beberapa saat lagi\"}",
+  "status": "PASS"
  }
 ]

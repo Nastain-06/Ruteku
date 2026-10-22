@@ -28,17 +28,26 @@ PROVIDER = MockPriceProvider()
 
 def get_price(kind: str, key: str, day: str, base: int) -> dict:
     ck, lk = f"price:{kind}:{key}:{day}", f"price_last:{kind}:{key}:{day}"
-    hit = cache.get_json(ck)
+    try:
+        hit = cache.get_json(ck)
+    except Exception:
+        hit = None
     if hit:
         return {**hit, "from_cache": True, "stale": False}
     try:
         rec = {"value": PROVIDER.quote(kind, key, base), "source": PROVIDER.name,
                "fetched_at": datetime.now(timezone.utc).isoformat()}
-        cache.set_json(ck, rec, settings.price_ttl_seconds)
-        cache.set_json(lk, rec, 7 * 86400)
+        try:
+            cache.set_json(ck, rec, settings.price_ttl_seconds)
+            cache.set_json(lk, rec, 7 * 86400)
+        except Exception:
+            pass
         return {**rec, "from_cache": False, "stale": False}
     except Exception:
-        last = cache.get_json(lk)  # fallback: harga terakhir, ditandai stale
+        try:
+            last = cache.get_json(lk)  # fallback: harga terakhir, ditandai stale
+        except Exception:
+            last = None
         if last:
             return {**last, "from_cache": True, "stale": True}
         return {"value": None, "source": None, "fetched_at": None, "from_cache": False, "stale": False}

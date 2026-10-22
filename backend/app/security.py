@@ -14,11 +14,20 @@ bearer = HTTPBearer(auto_error=False)
 
 
 def hash_password(p: str) -> str:
-    return bcrypt.hashpw(p.encode(), bcrypt.gensalt(rounds=12)).decode()  # NFR-06
+    return bcrypt.hashpw(p.encode("utf-8"), bcrypt.gensalt(rounds=12)).decode()  # NFR-06
+
+
+DUMMY_HASH = hash_password("ruteku-dummy-password-anti-timing-attack")
 
 
 def verify_password(p: str, h: str) -> bool:
-    return bcrypt.checkpw(p.encode(), h.encode())
+    raw = p.encode("utf-8")
+    if len(raw) > 72:
+        return False
+    try:
+        return bcrypt.checkpw(raw, h.encode("utf-8"))
+    except ValueError:
+        return False
 
 
 def create_token(user_id: str) -> str:
