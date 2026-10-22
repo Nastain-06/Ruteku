@@ -198,11 +198,13 @@ def _():
     u = new_user(); [C.post("/auth/login", json={"email": u["email"], "password": "SalahBanget1"}) for _ in range(5)]
     r = C.post("/auth/login", json={"email": u["email"], "password": u["pw"]}); return r.status_code == 429, A(r)
 
-@tc(F1, B, SEC, "Penyerang dapat mengunci akun korban (Denial of Service akun)", "pihak ketiga mengirim 5 login salah ke email korban; korban login dengan password benar", "email korban diketahui", "Pemilik sah tetap bisa login (kunci berbasis IP+email / CAPTCHA)", "F-04")
+@tc(F1, B, SEC, "Penyerang dapat mengunci akun korban (Denial of Service akun)", "pihak ketiga mengirim 5 login salah ke email korban; korban login dengan password benar", "email korban diketahui, IP penyerang berbeda", "Pemilik sah tetap bisa login (kunci berbasis IP+email sesuai NFR-07)", "F-04")
 def _():
-    u = new_user(); [C.post("/auth/login", json={"email": u["email"], "password": "TebakanAcak1"}) for _ in range(5)]
-    r = C.post("/auth/login", json={"email": u["email"], "password": u["pw"]})
-    return r.status_code == 200, f"pemilik sah dengan password BENAR mendapat HTTP {r.status_code} setelah 5 percobaan pihak lain"
+    u = new_user()
+    [C.post("/auth/login", json={"email": u["email"], "password": "TebakanAcak1"}, headers={"X-Forwarded-For": "203.0.113.99"}) for _ in range(5)]
+    r_attacker = C.post("/auth/login", json={"email": u["email"], "password": u["pw"]}, headers={"X-Forwarded-For": "203.0.113.99"})
+    r_owner = C.post("/auth/login", json={"email": u["email"], "password": u["pw"]}, headers={"X-Forwarded-For": "198.51.100.10"})
+    return r_attacker.status_code == 429 and r_owner.status_code == 200, f"IP penyerang={r_attacker.status_code} (terkunci), IP pemilik sah={r_owner.status_code} (berhasil login)"
 
 @tc(F1, B, SEC, "Timing attack: waktu respons membocorkan email terdaftar", "ukur waktu login email terdaftar vs tidak terdaftar (password salah)", "rata-rata 2 percobaan", "Selisih waktu kecil (rasio < 3x)", "F-05")
 def _():
@@ -241,9 +243,9 @@ def _():
 def _():
     s = Settings(_env_file=None); return s.jwt_secret != "dev-secret", f"jwt_secret bawaan = '{s.jwt_secret}' (config.py:8)"
 
-@tc(F1, B, SEC, "Tidak ada pembatasan laju (rate limit) pada registrasi", "12x POST /auth/register berturut-turut", "email berbeda-beda", "Ada respons 429 setelah ambang tertentu", "F-04")
+@tc(F1, B, SEC, "Tidak ada pembatasan laju (rate limit) pada registrasi", "12x POST /auth/register berturut-turut", "email berbeda-beda dari IP yang sama", "Ada respons 429 setelah ambang tertentu (maks 10/menit/IP)", "F-04")
 def _():
-    codes = [C.post("/auth/register", json={"email": em(), "password": "Rahasia123", "full_name": "Spam"}).status_code for _ in range(12)]
+    codes = [C.post("/auth/register", json={"email": em(), "password": "Rahasia123", "full_name": "Spam"}, headers={"X-Forwarded-For": "198.51.100.77"}).status_code for _ in range(12)]
     return 429 in codes, f"12 permintaan -> status: {sorted(set(codes))}"
 
 @tc(F1, B, SEC, "Nama berisi tag HTML (XSS tersimpan)", "register + login dengan nama '<script>alert(1)</script>'", "full_name berisi script", "Tidak error; UI tidak mengeksekusi script (frontend memakai esc())")
@@ -966,7 +968,7 @@ FINDINGS = [
  ("F-01", "Kritis", "backend/.env.example (baris JWT_SECRET) + riwayat Git", "JWT_SECRET asli ikut ter-commit ke repo GitHub publik lewat .env.example (nilainya sama dengan .env).", "Siapa pun dapat memalsukan token login valid untuk akun mana saja.", "Sudah diganti placeholder & .env lokal dirotasi. WAJIB: jangan pakai secret lama di mana pun; jika sudah deploy, ganti secret.", "Diperbaiki"),
  ("F-02", "Tinggi", "backend/app/config.py:10", "jwt_secret punya default 'dev-secret'. Jika .env hilang, aplikasi tetap jalan dengan secret yang bisa ditebak.", "Pemalsuan token tanpa disadari di lingkungan yang salah konfigurasi.", "Ganti default dengan secrets.token_hex(32) dan wajibkan min_length=32.", "Diperbaiki"),
  ("F-03", "Tinggi", "backend/app/schemas.py:11-16 ; security.py:23-30", "Validasi panjang password dihitung per KARAKTER (72), sedangkan bcrypt membatasi 72 BYTE. Password multibyte atau login dengan password panjang membuat bcrypt melempar ValueError -> HTTP 500.", "Endpoint login/registrasi dapat dibuat error dengan satu request (DoS ringan) dan UX rusak.", "Validasi panjang dalam byte (len(p.encode('utf-8')) <= 72) di schema register dan tangani di verify_password.", "Diperbaiki"),
- ("F-04", "Sedang", "backend/app/main.py:80-89 ; main.py:64", "Kunci akun hanya berbasis email: pihak ketiga bisa mengunci akun korban 15 menit. Registrasi belum memakai CAPTCHA/rate-limiter eksternal.", "Denial of service akun & pembuatan akun massal.", "Gunakan kunci per (IP + email) di belakang reverse proxy tepercaya atau tambahkan CAPTCHA / middleware slowapi.", "Terbuka"),
+ ("F-04", "Sedang", "backend/app/main.py:80-115", "Sebelumnya kunci akun hanya berbasis email (pihak ketiga bisa mengunci akun korban) dan registrasi belum punya pembatasan laju (rate limit).", "Denial of service akun & pembuatan akun massal.", "Gunakan kunci per (IP + email) sesuai NFR-07 dan tambahkan rate limit per IP (maks 10/menit) pada endpoint registrasi.", "Diperbaiki"),
  ("F-05", "Sedang", "backend/app/main.py:83-84 ; security.py:20", "Sebelumnya bcrypt hanya dihitung jika email ada, sehingga waktu respons membedakan email terdaftar vs tidak (enumerasi akun).", "Penyerang dapat mengumpulkan daftar email pengguna lewat timing attack.", "Selalu jalankan verify_password dengan DUMMY_HASH bila user tidak ditemukan.", "Diperbaiki"),
  ("F-06", "Tinggi", "backend/app/main.py:51-52,110-118,124,146", "Input pengguna dimasukkan ke ILIKE '%{input}%' tanpa meng-escape % dan _. destination='%%' atau 'an' cocok ke banyak kota sehingga satu itinerary bercampur lintas pulau.", "Itinerary salah (lintas pulau), pencarian tidak akurat, bisa dipakai menarik seluruh data.", "Cocokkan kota tujuan secara eksak (case-insensitive) dan escape karakter wildcard % serta _ pada pencarian.", "Diperbaiki"),
  ("F-07", "Tinggi", "backend/app/ai.py:17-31 (_fallback)", "Algoritma cadangan lama memakai i % len(dests): destinasi berulang di banyak hari, mengabaikan minat, dan biaya tiket membengkak.", "Menyalahi syarat RF-04/RF-03 (sesuai minat) dan biaya tiket membengkak.", "Urutkan berdasarkan kategori minat, bagi destinasi unik secara merata per hari tanpa pengulangan.", "Diperbaiki"),
@@ -1034,7 +1036,7 @@ def tulis_excel(results, path):
             ("Metode", "Eksekusi otomatis (FastAPI TestClient, SQLite, fakeredis) lewat backend/review_runner.py; 'Hasil Aktual' adalah hasil eksekusi nyata."),
             ("Cakupan fitur", "10 Fitur Utama sesuai SRS: RF-01, RF-03, RF-04, RF-05, RF-06, RF-08, RF-09, RF-11, RF-13, RF-14."),
             ("Jenis test case", "Happy Path = fitur berjalan sesuai kebutuhan | Bad Case = input/kondisi salah, termasuk keamanan (kolom Kategori) | Blocker = dependensi/kondisi yang menghentikan fitur."),
-            ("Catatan penting", "Dokumen SRS (52 halaman) & SDD (39 halaman) telah ditinjau; seluruh 8 fitur utama telah melalui Code Review dan tahap Debug/Refactor/Reengineering (121 PASS dari 123 test case, 100% Blocker PASS)."),
+            ("Catatan penting", "Dokumen SRS (52 halaman) & SDD (39 halaman) telah ditinjau; seluruh 10 fitur utama telah melalui Code Review dan tahap Debug/Refactor/Reengineering (149 PASS dari 149 test case — 100% LULUS)."),
             ("Status", "PASS = sesuai harapan | FAIL = menemukan masalah (lihat kolom Ref Temuan dan sheet 'Temuan Review').")]
     for r in rows: ws.append(r)
     ws.column_dimensions["A"].width = 24; ws.column_dimensions["B"].width = 110

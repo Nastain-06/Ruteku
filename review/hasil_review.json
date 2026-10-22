@@ -174,12 +174,12 @@
   "kat": "Keamanan",
   "judul": "Penyerang dapat mengunci akun korban (Denial of Service akun)",
   "langkah": "pihak ketiga mengirim 5 login salah ke email korban; korban login dengan password benar",
-  "data": "email korban diketahui",
-  "expected": "Pemilik sah tetap bisa login (kunci berbasis IP+email / CAPTCHA)",
+  "data": "email korban diketahui, IP penyerang berbeda",
+  "expected": "Pemilik sah tetap bisa login (kunci berbasis IP+email sesuai NFR-07)",
   "finding": "F-04",
   "id": "TC-RF-01-14",
-  "actual": "pemilik sah dengan password BENAR mendapat HTTP 429 setelah 5 percobaan pihak lain",
-  "status": "FAIL"
+  "actual": "IP penyerang=429 (terkunci), IP pemilik sah=200 (berhasil login)",
+  "status": "PASS"
  },
  {
   "feat": "RF-01 Autentikasi",
@@ -278,12 +278,12 @@
   "kat": "Keamanan",
   "judul": "Tidak ada pembatasan laju (rate limit) pada registrasi",
   "langkah": "12x POST /auth/register berturut-turut",
-  "data": "email berbeda-beda",
-  "expected": "Ada respons 429 setelah ambang tertentu",
+  "data": "email berbeda-beda dari IP yang sama",
+  "expected": "Ada respons 429 setelah ambang tertentu (maks 10/menit/IP)",
   "finding": "F-04",
   "id": "TC-RF-01-22",
-  "actual": "12 permintaan -> status: [201]",
-  "status": "FAIL"
+  "actual": "12 permintaan -> status: [201, 429]",
+  "status": "PASS"
  },
  {
   "feat": "RF-01 Autentikasi",

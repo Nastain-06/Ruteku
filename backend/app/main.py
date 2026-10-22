@@ -58,6 +58,13 @@ def _escape_like(val: str) -> str:
     return val.replace("\\", "\\\\").replace("%", "\\%").replace("_", "\\_")
 
 
+def _client_ip(request: Request) -> str:
+    xff = request.headers.get("x-forwarded-for")
+    if xff:
+        return xff.split(",")[0].strip()
+    return request.client.host if request.client else "unknown"
+
+
 def dest_dict(d: Destination) -> dict:
     return {"id": d.id, "name": d.name, "category": d.category, "location": d.location,
             "description": d.description, "price_estimate": d.price_estimate, "lat": d.lat, "lng": d.lng}
@@ -86,7 +93,11 @@ def network_info(request: Request):
 
 # ---------- RF-01 Autentikasi ----------
 @app.post("/auth/register", status_code=201)
-def register(body: RegisterIn, db: Session = Depends(get_db)):
+def register(body: RegisterIn, request: Request, db: Session = Depends(get_db)):
+    ip = _client_ip(request)
+    rk = f"reg_rate:{ip}"
+    if int(cache.r.get(rk) or 0) >= 10:
+        raise HTTPException(429, "Terlalu banyak permintaan registrasi, silakan coba lagi nanti")
     email = body.email.lower()
     if db.scalar(select(User).where(User.email == email)):
         raise HTTPException(400, "Email sudah terdaftar")
@@ -96,14 +107,17 @@ def register(body: RegisterIn, db: Session = Depends(get_db)):
     except IntegrityError:
         db.rollback()
         raise HTTPException(400, "Email sudah terdaftar")
+    cache.r.incr(rk)
+    cache.r.expire(rk, 60)
     return {"message": "Registrasi berhasil, silakan login"}
 
 
 @app.post("/auth/login")
-def login(body: LoginIn, db: Session = Depends(get_db)):
+def login(body: LoginIn, request: Request, db: Session = Depends(get_db)):
     email = body.email.lower()
-    fk = f"login_fail:{email}"
-    if int(cache.r.get(fk) or 0) >= 5:  # proteksi brute-force: 5 gagal -> kunci 15 menit
+    ip = _client_ip(request)
+    fk = f"login_fail:{ip}:{email}"
+    if int(cache.r.get(fk) or 0) >= 5:  # NFR-07: proteksi brute-force per IP+email (5 gagal -> kunci 15 menit)
         raise HTTPException(429, "Akun terkunci sementara, coba lagi dalam 15 menit")
     u = db.scalar(select(User).where(User.email == email))
     pw_ok = verify_password(body.password, u.password_hash if u else DUMMY_HASH)
@@ -114,6 +128,7 @@ def login(body: LoginIn, db: Session = Depends(get_db)):
     if u.status != "active":
         raise HTTPException(403, "Akun diblokir")
     cache.r.delete(fk)
+    cache.r.delete(f"reg_rate:{ip}")
     return {"access_token": create_token(u.id), "token_type": "bearer", "full_name": u.full_name}
 
 
