@@ -2,7 +2,13 @@
 <html lang="id">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <meta name="theme-color" content="#0b1220">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Ruteku">
+  <link rel="manifest" href="/manifest.json">
   <title>Ruteku — Rencanakan Liburan dengan AI</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
@@ -65,7 +71,13 @@
         <button data-nav="history" onclick="switchView('history')" class="nav-btn px-4 py-2 rounded-full transition"><i class="fa-solid fa-bookmark mr-1.5"></i>Rencana Saya</button>
       </nav>
 
-      <div id="auth-box" class="flex items-center gap-2"></div>
+      <div class="flex items-center gap-2">
+        <button onclick="openQrModal()" title="Buka di HP" class="inline-flex items-center gap-1.5 text-xs font-bold text-slate-200 hover:text-white bg-white/10 hover:bg-white/15 border border-white/15 px-3 py-2 rounded-full transition">
+          <i class="fa-solid fa-mobile-screen-button text-brand-400"></i>
+          <span class="hidden sm:inline">Buka di HP</span>
+        </button>
+        <div id="auth-box" class="flex items-center gap-2"></div>
+      </div>
     </div>
   </header>
 
@@ -258,15 +270,15 @@
   </footer>
 
   <!-- Mobile Bottom Nav -->
-  <nav id="mobile-nav" class="md:hidden fixed bottom-0 inset-x-0 z-40 bg-white/95 backdrop-blur border-t border-slate-200 grid grid-cols-3 text-[11px] font-semibold">
-    <button data-mnav="plan" onclick="switchView('plan')" class="py-3 flex flex-col items-center gap-1"><i class="fa-solid fa-wand-magic-sparkles text-base"></i>Rencana</button>
-    <button data-mnav="destinations" onclick="switchView('destinations')" class="py-3 flex flex-col items-center gap-1"><i class="fa-solid fa-compass text-base"></i>Jelajahi</button>
-    <button data-mnav="history" onclick="switchView('history')" class="py-3 flex flex-col items-center gap-1"><i class="fa-solid fa-bookmark text-base"></i>Tersimpan</button>
+  <nav id="mobile-nav" class="md:hidden fixed bottom-0 inset-x-0 z-40 bg-white/95 backdrop-blur border-t border-slate-200 grid grid-cols-3 text-[11px] font-semibold" style="padding-bottom: env(safe-area-inset-bottom)">
+    <button data-mnav="plan" onclick="switchView('plan')" class="py-3 flex flex-col items-center gap-1 active:scale-95 transition"><i class="fa-solid fa-wand-magic-sparkles text-base"></i>Rencana</button>
+    <button data-mnav="destinations" onclick="switchView('destinations')" class="py-3 flex flex-col items-center gap-1 active:scale-95 transition"><i class="fa-solid fa-compass text-base"></i>Jelajahi</button>
+    <button data-mnav="history" onclick="switchView('history')" class="py-3 flex flex-col items-center gap-1 active:scale-95 transition"><i class="fa-solid fa-bookmark text-base"></i>Tersimpan</button>
   </nav>
 
   <!-- ================= MODAL AUTH ================= -->
-  <div id="auth-modal" class="fixed inset-0 z-50 hidden items-center justify-center p-4 bg-ink/70 backdrop-blur-sm">
-    <div class="bg-white rounded-3xl max-w-3xl w-full overflow-hidden shadow-2xl grid md:grid-cols-2 fade-up">
+  <div id="auth-modal" class="fixed inset-0 z-50 hidden items-center justify-center p-3 sm:p-4 bg-ink/70 backdrop-blur-sm">
+    <div class="bg-white rounded-3xl max-w-3xl w-full max-h-[92dvh] overflow-y-auto shadow-2xl grid md:grid-cols-2 fade-up">
       <div class="mesh relative hidden md:flex flex-col justify-between p-8 text-white">
         <div class="absolute inset-0 dots"></div>
         <div class="relative flex items-center gap-2 font-extrabold text-lg"><i class="fa-solid fa-route text-brand-400"></i> Ruteku</div>
@@ -322,15 +334,40 @@
   </div>
 
   <!-- ================= MODAL DETAIL ================= -->
-  <div id="detail-modal" class="fixed inset-0 z-50 hidden items-center justify-center p-4 bg-ink/70 backdrop-blur-sm">
-    <div class="bg-slate-50 rounded-3xl max-w-5xl w-full max-h-[92vh] overflow-y-auto scroll-thin shadow-2xl relative fade-up">
+  <div id="detail-modal" class="fixed inset-0 z-50 hidden items-center justify-center p-3 sm:p-4 bg-ink/70 backdrop-blur-sm">
+    <div class="bg-slate-50 rounded-3xl max-w-5xl w-full max-h-[92dvh] overflow-y-auto scroll-thin shadow-2xl relative fade-up">
       <button onclick="closeDetailModal()" class="sticky float-right top-4 mr-4 mt-4 z-10 w-9 h-9 rounded-full bg-white shadow text-slate-500 hover:text-slate-800"><i class="fa-solid fa-xmark"></i></button>
-      <div id="detail-content" class="p-5 sm:p-8 space-y-6"></div>
+      <div id="detail-content" class="p-4 sm:p-8 space-y-6"></div>
+    </div>
+  </div>
+
+  <!-- ================= MODAL AKSES MOBILE (QR CODE) ================= -->
+  <div id="qr-modal" class="fixed inset-0 z-50 hidden items-center justify-center p-4 bg-ink/70 backdrop-blur-sm">
+    <div class="bg-white rounded-3xl max-w-md w-full p-6 sm:p-7 shadow-2xl relative fade-up text-center">
+      <button onclick="closeQrModal()" class="absolute right-5 top-5 w-8 h-8 rounded-full hover:bg-slate-100 text-slate-400"><i class="fa-solid fa-xmark"></i></button>
+      <div class="w-12 h-12 mx-auto rounded-2xl bg-brand-50 text-brand-600 flex items-center justify-center text-xl">
+        <i class="fa-solid fa-mobile-screen-button"></i>
+      </div>
+      <h3 class="text-xl font-extrabold text-slate-900 mt-4">Buka Ruteku di HP</h3>
+      <p class="text-xs text-slate-500 mt-1">Pastikan HP dan laptop terhubung ke <b>Wi-Fi atau Hotspot yang sama</b>, lalu scan QR Code ini:</p>
+      <div class="my-5 inline-flex p-4 bg-white border-2 border-slate-100 rounded-2xl shadow-sm">
+        <img id="qr-img" src="" alt="QR Code Mobile" class="w-48 h-48 rounded-lg">
+      </div>
+      <div class="bg-slate-50 border border-slate-200 rounded-xl px-3 py-2.5 text-left">
+        <p class="text-[10px] font-bold uppercase tracking-wider text-slate-400">Alamat URL untuk Browser HP</p>
+        <div class="flex items-center justify-between gap-2 mt-0.5">
+          <a id="qr-url" href="#" target="_blank" class="font-mono text-sm font-extrabold text-brand-700 break-all hover:underline">Memuat...</a>
+          <button type="button" onclick="copyMobileUrl()" class="shrink-0 text-xs font-bold bg-white border border-slate-200 hover:bg-slate-100 px-2.5 py-1 rounded-lg"><i class="fa-regular fa-copy mr-1"></i>Salin</button>
+        </div>
+      </div>
+      <p class="text-[11px] text-slate-400 mt-4 leading-relaxed">
+        <i class="fa-solid fa-circle-info mr-1 text-sky-500"></i>Tips: Di browser Chrome/Safari HP, pilih menu <b>"Tambahkan ke Layar Utama" (Add to Home Screen)</b> agar Ruteku tampil penuh seperti aplikasi Android/iOS.
+      </p>
     </div>
   </div>
 
   <!-- Toast -->
-  <div id="toast" class="fixed top-20 right-5 z-[60] hidden"></div>
+  <div id="toast" class="fixed top-20 inset-x-4 sm:left-auto sm:right-5 z-[60] hidden flex justify-center sm:block"></div>
 
   <style>
     .lbl { display:block; font-size:11px; font-weight:700; color:#64748b; text-transform:uppercase; letter-spacing:.06em; margin-bottom:6px; }
@@ -346,7 +383,7 @@
 
   <script>
     // ================= KONFIGURASI =================
-    const API_BASE = location.port === '8000' ? location.origin : 'http://localhost:8000';
+    const API_BASE = (location.protocol.startsWith('http') && location.port !== '5500' && location.port !== '3000') ? location.origin : 'http://localhost:8000';
 
     const CITIES = {
       'Bali': {
@@ -682,8 +719,8 @@
       }
     }
 
-    // ================= RENDER HASIL (dipakai juga oleh detail riwayat) =================
-    function renderPlan(plan, { saveable = false, prefix = 'main', title = null } = {}) {
+    // ================= RENDER HASIL (dipakai juga oleh detail riwayat & berbagi) =================
+    function renderPlan(plan, { saveable = false, prefix = 'main', title = null, savedId = null } = {}) {
       const city = CITIES[plan.destination] || { icon: 'fa-location-dot', grad: 'from-slate-500 to-slate-700' };
       const c = plan.cost;
       const nights = c.hotel.nights;
@@ -769,10 +806,18 @@
                 </p>
               </div>
               ${saveable ? `
-              <div id="result-actions" class="flex gap-2">
+              <div id="result-actions" class="flex flex-wrap gap-2">
                 <button onclick="window.print()" class="px-4 py-2.5 rounded-xl bg-white/20 hover:bg-white/30 backdrop-blur text-sm font-bold"><i class="fa-solid fa-print"></i></button>
                 <button onclick="document.getElementById('form-generate').scrollIntoView({behavior:'smooth'})" class="px-4 py-2.5 rounded-xl bg-white/20 hover:bg-white/30 backdrop-blur text-sm font-bold"><i class="fa-solid fa-rotate mr-1.5"></i>Ubah</button>
                 <button id="btn-save" onclick="handleSavePlan()" class="px-5 py-2.5 rounded-xl bg-white text-slate-900 hover:bg-slate-100 text-sm font-bold shadow"><i class="fa-regular fa-bookmark mr-1.5"></i>Simpan</button>
+              </div>` : savedId ? `
+              <div id="result-actions" class="flex flex-wrap gap-2">
+                <button onclick="window.print()" title="Cetak PDF" class="px-3.5 py-2.5 rounded-xl bg-white/20 hover:bg-white/30 backdrop-blur text-sm font-bold"><i class="fa-solid fa-print"></i></button>
+                <button onclick="sharePlan('${esc(savedId)}', event)" class="px-4 py-2.5 rounded-xl bg-white text-slate-900 hover:bg-slate-100 text-sm font-bold shadow"><i class="fa-solid fa-share-nodes mr-1.5 text-brand-600"></i>Bagikan</button>
+                <button onclick="deletePlan('${esc(savedId)}', event)" class="px-4 py-2.5 rounded-xl bg-rose-500/90 hover:bg-rose-600 text-white text-sm font-bold shadow"><i class="fa-regular fa-trash-can mr-1.5"></i>Hapus</button>
+              </div>` : plan.shared ? `
+              <div class="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-white/20 backdrop-blur text-xs font-bold">
+                <i class="fa-solid fa-link"></i> Mode Bagikan (Read-Only)
               </div>` : ''}
             </div>
           </div>
@@ -969,13 +1014,16 @@
           const city = CITIES[it.destination] || { icon: 'fa-location-dot', grad: 'from-slate-500 to-slate-700', img: 'https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=700&q=80' };
           const photo = city.img || getPhoto(it.destination, it.destination);
           return `
-          <button onclick="viewDetail('${it.id}')" class="fade-up text-left group bg-white rounded-3xl border border-slate-200 overflow-hidden hover:shadow-xl hover:-translate-y-1 transition duration-300" style="animation-delay:${i * 50}ms">
+          <div onclick="viewDetail('${it.id}')" role="button" tabindex="0" class="fade-up cursor-pointer text-left group bg-white rounded-3xl border border-slate-200 overflow-hidden hover:shadow-xl hover:-translate-y-1 transition duration-300" style="animation-delay:${i * 50}ms">
             <div class="h-28 relative p-5 text-white overflow-hidden">
               <img src="${photo}" alt="${esc(it.destination)}" class="absolute inset-0 w-full h-full object-cover group-hover:scale-110 transition duration-700">
               <div class="absolute inset-0 bg-gradient-to-t from-black/85 via-black/45 to-black/20"></div>
               <div class="relative flex items-start justify-between">
                 <span class="text-xs font-bold bg-white/20 backdrop-blur px-3 py-1 rounded-full"><i class="fa-solid fa-location-dot mr-1"></i>${esc(it.destination)}</span>
-                <i class="fa-solid ${city.icon} text-xl text-white/50"></i>
+                <div class="flex items-center gap-1.5">
+                  <button type="button" onclick="sharePlan('${it.id}', event)" title="Bagikan rencana" class="w-8 h-8 rounded-full bg-white/20 hover:bg-white text-white hover:text-brand-700 backdrop-blur flex items-center justify-center transition"><i class="fa-solid fa-share-nodes text-xs"></i></button>
+                  <button type="button" onclick="deletePlan('${it.id}', event)" title="Hapus rencana" class="w-8 h-8 rounded-full bg-white/20 hover:bg-rose-500 text-white backdrop-blur flex items-center justify-center transition"><i class="fa-regular fa-trash-can text-xs"></i></button>
+                </div>
               </div>
             </div>
             <div class="p-5">
@@ -986,7 +1034,7 @@
                 <span class="w-9 h-9 rounded-full bg-slate-100 group-hover:bg-ink group-hover:text-white flex items-center justify-center transition"><i class="fa-solid fa-arrow-right text-sm"></i></span>
               </div>
             </div>
-          </button>`;
+          </div>`;
         }).join('')}</div>`;
       } catch (ex) { box.innerHTML = emptyState('fa-plug-circle-xmark', 'Gagal memuat', ex.message); }
     }
@@ -994,20 +1042,80 @@
     async function viewDetail(id) {
       try {
         const plan = await api('/itineraries/' + id, { auth: true });
-        $('detail-content').innerHTML = renderPlan(plan, { saveable: false, prefix: 'detail', title: plan.title });
+        $('detail-content').innerHTML = renderPlan(plan, { saveable: false, prefix: 'detail', title: plan.title, savedId: id });
         $('detail-modal').classList.replace('hidden', 'flex');
         renderMap('detail', plan);
       } catch (ex) { toast(ex.message, 'err'); }
     }
+
+    async function deletePlan(id, ev) {
+      if (ev) ev.stopPropagation();
+      if (!confirm('Apakah Anda yakin ingin menghapus rencana perjalanan ini?')) return;
+      try {
+        const res = await api('/itineraries/' + id, { method: 'DELETE', auth: true });
+        closeDetailModal();
+        toast(res.message || 'Rencana perjalanan berhasil dihapus');
+        loadHistory();
+      } catch (ex) { toast(ex.message, 'err'); }
+    }
+
+    async function sharePlan(id, ev) {
+      if (ev) ev.stopPropagation();
+      try {
+        const res = await api('/itineraries/' + id + '/share', { method: 'POST', auth: true });
+        const fullUrl = location.origin + res.share_url;
+        if (navigator.share) {
+          try { await navigator.share({ title: 'Rencana Perjalanan Ruteku', url: fullUrl }); return; } catch (e) {}
+        }
+        await navigator.clipboard?.writeText(fullUrl);
+        toast('Tautan berbagi disalin: ' + fullUrl);
+      } catch (ex) { toast(ex.message, 'err'); }
+    }
+
+    async function loadSharedFromUrl() {
+      const params = new URLSearchParams(location.search);
+      const st = params.get('share');
+      if (!st) return;
+      try {
+        const plan = await api('/shared/' + encodeURIComponent(st));
+        $('detail-content').innerHTML = renderPlan(plan, { saveable: false, prefix: 'detail', title: plan.title });
+        $('detail-modal').classList.replace('hidden', 'flex');
+        renderMap('detail', plan);
+      } catch (ex) {
+        toast(ex.message || 'Rencana perjalanan ini tidak lagi tersedia', 'err');
+      }
+    }
     function closeDetailModal() { $('detail-modal').classList.replace('flex', 'hidden'); }
 
+    async function openQrModal() {
+      $('qr-modal').classList.replace('hidden', 'flex');
+      try {
+        const info = await api('/network-info');
+        const url = info.mobile_url || location.origin;
+        $('qr-url').textContent = url;
+        $('qr-url').href = url;
+        $('qr-img').src = 'https://api.qrserver.com/v1/create-qr-code/?size=220x220&margin=6&data=' + encodeURIComponent(url);
+      } catch (e) {
+        const url = location.origin;
+        $('qr-url').textContent = url;
+        $('qr-url').href = url;
+        $('qr-img').src = 'https://api.qrserver.com/v1/create-qr-code/?size=220x220&margin=6&data=' + encodeURIComponent(url);
+      }
+    }
+    function closeQrModal() { $('qr-modal').classList.replace('flex', 'hidden'); }
+    function copyMobileUrl() {
+      const url = $('qr-url').textContent;
+      navigator.clipboard?.writeText(url);
+      toast('Alamat URL mobile disalin!');
+    }
+
     // ================= INIT =================
-    document.addEventListener('keydown', e => { if (e.key === 'Escape') { closeAuthModal(); closeDetailModal(); } });
-    ['auth-modal', 'detail-modal'].forEach(id => $(id).addEventListener('click', e => { if (e.target.id === id) id === 'auth-modal' ? closeAuthModal() : closeDetailModal(); }));
+    document.addEventListener('keydown', e => { if (e.key === 'Escape') { closeAuthModal(); closeDetailModal(); closeQrModal(); } });
+    ['auth-modal', 'detail-modal', 'qr-modal'].forEach(id => $(id).addEventListener('click', e => { if (e.target.id === id) { if (id === 'auth-modal') closeAuthModal(); else if (id === 'detail-modal') closeDetailModal(); else closeQrModal(); } }));
 
     window.addEventListener('DOMContentLoaded', () => {
       renderAuth(); renderCityPicker(); renderInterestChips(); renderFilters();
-      initDates(); updateBudgetLabel(); switchView('plan');
+      initDates(); updateBudgetLabel(); switchView('plan'); loadSharedFromUrl();
     });
   </script>
 </body>

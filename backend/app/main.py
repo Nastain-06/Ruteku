@@ -2,7 +2,9 @@ from contextlib import asynccontextmanager
 from datetime import date as dt_date
 import math
 import os
+import re
 import secrets
+import socket
 import time
 import uuid
 from fastapi import Depends, FastAPI, HTTPException, Query, Request
@@ -33,8 +35,13 @@ async def lifespan(app: FastAPI):
 
 
 app = FastAPI(title="Ruteku API", version="0.1", lifespan=lifespan)
-app.add_middleware(CORSMiddleware, allow_origins=settings.cors_origins.split(","),
-                   allow_methods=["*"], allow_headers=["*"])
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=settings.cors_origins.split(","),
+    allow_origin_regex=r"^https?://(localhost|127\.0\.0\.1|192\.168\.\d+\.\d+|10\.\d+\.\d+\.\d+|172\.(1[6-9]|2\d|3[0-1])\.\d+\.\d+)(:\d+)?$",
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 
 @app.exception_handler(SQLAlchemyError)
@@ -59,6 +66,22 @@ def dest_dict(d: Destination) -> dict:
 @app.get("/health")
 def health():
     return {"status": "ok"}
+
+
+@app.get("/network-info")
+def network_info(request: Request):
+    lan_ip = "127.0.0.1"
+    try:
+        with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as s:
+            s.connect(("8.8.8.8", 80))
+            lan_ip = s.getsockname()[0]
+    except Exception:
+        try:
+            lan_ip = socket.gethostbyname(socket.gethostname())
+        except Exception:
+            pass
+    port = request.url.port or 8000
+    return {"lan_ip": lan_ip, "port": port, "mobile_url": f"http://{lan_ip}:{port}"}
 
 
 # ---------- RF-01 Autentikasi ----------
@@ -274,6 +297,57 @@ def detail(iid: str, user: User = Depends(current_user), db: Session = Depends(g
     if not r or r.user_id != user.id:
         raise HTTPException(404, "Rencana tidak ditemukan")
     return {"id": r.id, "title": r.title, **r.data}
+
+
+# ---------- RF-11 Penghapusan Rencana Perjalanan (UC-13) ----------
+@app.delete("/itineraries/{iid}")
+def delete_itinerary(iid: str, user: User = Depends(current_user), db: Session = Depends(get_db)):
+    r = db.get(Itinerary, iid)
+    if not r or r.user_id != user.id:
+        raise HTTPException(404, "Rencana tidak ditemukan")
+    share_token = (r.data or {}).get("share_token")
+    if share_token:
+        cache.r.delete(f"share:{share_token}")
+    db.delete(r)
+    db.commit()
+    return {"message": "Rencana perjalanan berhasil dihapus", "id": iid}
+
+
+# ---------- RF-14 Berbagi Rencana Perjalanan via Tautan Unik (UC-16) ----------
+@app.post("/itineraries/{iid}/share")
+def share_itinerary(iid: str, user: User = Depends(current_user), db: Session = Depends(get_db)):
+    r = db.get(Itinerary, iid)
+    if not r or r.user_id != user.id:
+        raise HTTPException(404, "Rencana tidak ditemukan")
+    data = dict(r.data or {})
+    share_token = data.get("share_token") or uuid.uuid4().hex
+    data["share_token"] = share_token
+    r.data = data
+    db.commit()
+    cache.r.set(f"share:{share_token}", r.id, ex=7 * 86400)
+    return {
+        "id": r.id,
+        "share_token": share_token,
+        "share_url": f"/?share={share_token}",
+        "message": "Tautan berbagi berhasil dibuat",
+    }
+
+
+@app.get("/shared/{token}")
+def get_shared_itinerary(token: str, db: Session = Depends(get_db)):
+    if not re.fullmatch(r"[a-f0-9]{16,64}", token):
+        raise HTTPException(404, "Rencana perjalanan ini tidak lagi tersedia")
+    iid = cache.r.get(f"share:{token}")
+    r = db.get(Itinerary, iid) if iid else None
+    if not r:
+        for row in db.scalars(select(Itinerary)):
+            if (row.data or {}).get("share_token") == token:
+                r = row
+                break
+    if not r or (r.data or {}).get("share_token") != token:
+        raise HTTPException(404, "Rencana perjalanan ini tidak lagi tersedia")
+    clean_data = {k: v for k, v in (r.data or {}).items() if k != "share_token"}
+    return {"id": r.id, "title": r.title, "shared": True, **clean_data}
 
 
 # ---------- Sajikan Frontend Otomatis di http://localhost:8000 ----------

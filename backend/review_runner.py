@@ -798,6 +798,142 @@ def _():
 
 
 # =====================================================================
+# RF-11  PENGHAPUSAN RENCANA PERJALANAN (UC-13)
+# =====================================================================
+F11 = "RF-11 Hapus Rencana"
+
+@tc(F11, H, "-", "Menghapus rencana perjalanan milik sendiri berhasil", "simpan rencana -> DELETE /itineraries/{id}", "id valid milik sendiri", "HTTP 200 'Rencana perjalanan berhasil dihapus'")
+def _():
+    u = new_user(); sid = C.post("/itineraries", json={"plan_id": gen(u).json()["plan_id"]}, headers=u["h"]).json()["id"]
+    r = C.delete(f"/itineraries/{sid}", headers=u["h"])
+    return r.status_code == 200 and "berhasil dihapus" in r.text, A(r)
+
+@tc(F11, H, "-", "Rencana yang dihapus hilang dari daftar riwayat", "simpan -> DELETE -> GET /itineraries", "id valid", "Riwayat menjadi kosong []")
+def _():
+    u = new_user(); sid = C.post("/itineraries", json={"plan_id": gen(u).json()["plan_id"]}, headers=u["h"]).json()["id"]
+    C.delete(f"/itineraries/{sid}", headers=u["h"])
+    h = C.get("/itineraries", headers=u["h"]).json()
+    return h == [], f"sisa riwayat = {len(h)} item"
+
+@tc(F11, H, "-", "Menghapus satu rencana tidak menghapus rencana lain milik pengguna yang sama", "simpan 2 rencana -> DELETE rencana pertama -> GET /itineraries", "2 rencana", "Sisa 1 rencana (rencana kedua masih utuh)")
+def _():
+    u = new_user()
+    s1 = C.post("/itineraries", json={"plan_id": gen(u, destination="Bali").json()["plan_id"]}, headers=u["h"]).json()["id"]
+    s2 = C.post("/itineraries", json={"plan_id": gen(u, destination="Yogyakarta").json()["plan_id"]}, headers=u["h"]).json()["id"]
+    C.delete(f"/itineraries/{s1}", headers=u["h"])
+    h = C.get("/itineraries", headers=u["h"]).json()
+    return len(h) == 1 and h[0]["id"] == s2, f"sisa={len(h)}, id_tersisa={h[0]['id'] if h else None}"
+
+@tc(F11, H, "-", "Menghapus rencana otomatis menonaktifkan tautan berbagi (UC-13 langkah 2.2)", "simpan -> POST share -> DELETE rencana -> GET /shared/{token}", "rencana yang pernah dibagikan", "GET /shared/{token} mengembalikan HTTP 404")
+def _():
+    u = new_user(); sid = C.post("/itineraries", json={"plan_id": gen(u).json()["plan_id"]}, headers=u["h"]).json()["id"]
+    st = C.post(f"/itineraries/{sid}/share", headers=u["h"]).json()["share_token"]
+    C.delete(f"/itineraries/{sid}", headers=u["h"])
+    r = C.get(f"/shared/{st}")
+    return r.status_code == 404, A(r)
+
+@tc(F11, B, FN, "Menghapus rencana dengan ID yang tidak ada", "DELETE /itineraries/tidak-ada", "id='tidak-ada'", "HTTP 404 'Rencana tidak ditemukan'")
+def _():
+    r = C.delete("/itineraries/tidak-ada", headers=new_user()["h"]); return r.status_code == 404, A(r)
+
+@tc(F11, B, FN, "Menghapus rencana yang sama dua kali berturut-turut", "DELETE 2x pada id yang sama", "id sama", "DELETE kedua mengembalikan HTTP 404")
+def _():
+    u = new_user(); sid = C.post("/itineraries", json={"plan_id": gen(u).json()["plan_id"]}, headers=u["h"]).json()["id"]
+    r1 = C.delete(f"/itineraries/{sid}", headers=u["h"]); r2 = C.delete(f"/itineraries/{sid}", headers=u["h"])
+    return r1.status_code == 200 and r2.status_code == 404, f"hapus#1={r1.status_code}, hapus#2={r2.status_code}"
+
+@tc(F11, B, SEC, "IDOR: mencoba menghapus rencana perjalanan milik pengguna lain", "user B mengirim DELETE /itineraries/{id_milik_A}", "id milik user A", "Ditolak HTTP 404 dan rencana user A tetap aman")
+def _():
+    ua = new_user("A"); ub = new_user("B")
+    sid = C.post("/itineraries", json={"plan_id": gen(ua).json()["plan_id"]}, headers=ua["h"]).json()["id"]
+    r = C.delete(f"/itineraries/{sid}", headers=ub["h"])
+    masih_ada = C.get(f"/itineraries/{sid}", headers=ua["h"]).status_code == 200
+    return r.status_code == 404 and masih_ada, f"DELETE oleh B={r.status_code}, data A masih ada={masih_ada}"
+
+@tc(F11, B, SEC, "SQL Injection pada parameter ID saat menghapus rencana", "DELETE /itineraries/' OR '1'='1", "iid=\"' OR '1'='1\"", "HTTP 404, tidak menghapus data pengguna lain")
+def _():
+    u = new_user(); sid = C.post("/itineraries", json={"plan_id": gen(u).json()["plan_id"]}, headers=u["h"]).json()["id"]
+    r = C.delete("/itineraries/' OR '1'='1", headers=u["h"])
+    masih_ada = C.get(f"/itineraries/{sid}", headers=u["h"]).status_code == 200
+    return r.status_code == 404 and masih_ada, f"HTTP {r.status_code}, data aman={masih_ada}"
+
+@tc(F11, K, SEC, "Menghapus rencana tanpa login (tanpa token)", "DELETE /itineraries/{id} tanpa header Authorization", "-", "HTTP 401")
+def _():
+    r = C.delete("/itineraries/123"); return r.status_code == 401, A(r)
+
+@tc(F11, K, FN, "Database mati saat menghapus rencana", "DELETE /itineraries/{id} saat DB down", "DB down", "HTTP 503 ramah")
+def _():
+    u = new_user(); sid = C.post("/itineraries", json={"plan_id": gen(u).json()["plan_id"]}, headers=u["h"]).json()["id"]
+    with db_down():
+        r = C.delete(f"/itineraries/{sid}", headers=u["h"])
+    return r.status_code == 503, A(r)
+
+
+# =====================================================================
+# RF-14  BERBAGI RENCANA PERJALANAN VIA TAUTAN UNIK (UC-16)
+# =====================================================================
+F14 = "RF-14 Berbagi Rencana"
+
+@tc(F14, H, "-", "Membuat tautan berbagi unik (shareable link) untuk rencana tersimpan", "POST /itineraries/{id}/share", "id valid milik sendiri", "HTTP 200 + share_token + share_url")
+def _():
+    u = new_user(); sid = C.post("/itineraries", json={"plan_id": gen(u).json()["plan_id"]}, headers=u["h"]).json()["id"]
+    r = C.post(f"/itineraries/{sid}/share", headers=u["h"]); j = r.json()
+    return r.status_code == 200 and len(j.get("share_token", "")) == 32 and "/?share=" in j.get("share_url", ""), A(r)
+
+@tc(F14, H, "-", "Penerima tautan dapat membuka rencana perjalanan tanpa login (mode read-only)", "GET /shared/{token} tanpa header Authorization", "share_token valid", "HTTP 200 + detail itinerary + shared=true")
+def _():
+    u = new_user(); sid = C.post("/itineraries", json={"plan_id": gen(u).json()["plan_id"], "title": "Trip Bareng"}, headers=u["h"]).json()["id"]
+    st = C.post(f"/itineraries/{sid}/share", headers=u["h"]).json()["share_token"]
+    r = C.get(f"/shared/{st}"); j = r.json()
+    return r.status_code == 200 and j.get("title") == "Trip Bareng" and j.get("shared") is True and "days" in j, f"HTTP {r.status_code}, title={j.get('title')}, shared={j.get('shared')}"
+
+@tc(F14, H, "-", "Memanggil share 2x pada rencana yang sama menghasilkan token konsisten (idempoten)", "POST /itineraries/{id}/share 2x", "id sama", "share_token pertama == share_token kedua")
+def _():
+    u = new_user(); sid = C.post("/itineraries", json={"plan_id": gen(u).json()["plan_id"]}, headers=u["h"]).json()["id"]
+    t1 = C.post(f"/itineraries/{sid}/share", headers=u["h"]).json()["share_token"]
+    t2 = C.post(f"/itineraries/{sid}/share", headers=u["h"]).json()["share_token"]
+    return t1 == t2, f"token1={t1[:10]}..., sama={t1==t2}"
+
+@tc(F14, B, FN, "Membagikan rencana dengan ID yang tidak ditemukan", "POST /itineraries/tidak-ada/share", "id='tidak-ada'", "HTTP 404 'Rencana tidak ditemukan'")
+def _():
+    r = C.post("/itineraries/tidak-ada/share", headers=new_user()["h"]); return r.status_code == 404, A(r)
+
+@tc(F14, B, FN, "Membuka tautan berbagi dengan token acak yang tidak terdaftar", "GET /shared/00000000000000000000000000000000", "token hex 32 char palsu", "HTTP 404 'Rencana perjalanan ini tidak lagi tersedia'")
+def _():
+    r = C.get("/shared/" + "0" * 32); return r.status_code == 404 and "tidak lagi tersedia" in r.text, A(r)
+
+@tc(F14, B, SEC, "IDOR: mencoba membuat tautan berbagi untuk rencana milik pengguna lain", "user B memanggil POST /itineraries/{id_milik_A}/share", "id milik user A", "Ditolak HTTP 404")
+def _():
+    ua = new_user("A"); ub = new_user("B")
+    sid = C.post("/itineraries", json={"plan_id": gen(ua).json()["plan_id"]}, headers=ua["h"]).json()["id"]
+    r = C.post(f"/itineraries/{sid}/share", headers=ub["h"])
+    return r.status_code == 404, A(r)
+
+@tc(F14, B, SEC, "Data publik /shared/{token} tidak membocorkan share_token atau data sensitif", "periksa field respons GET /shared/{token}", "token valid", "Tidak ada field password_hash atau share_token di respons")
+def _():
+    u = new_user(); sid = C.post("/itineraries", json={"plan_id": gen(u).json()["plan_id"]}, headers=u["h"]).json()["id"]
+    st = C.post(f"/itineraries/{sid}/share", headers=u["h"]).json()["share_token"]
+    j = C.get(f"/shared/{st}").json()
+    return "share_token" not in j and "password_hash" not in j, f"keys={sorted(j.keys())}"
+
+@tc(F14, B, SEC, "Injeksi karakter berbahaya / format token tidak valid pada /shared/{token}", "GET /shared/<script>alert(1)</script>", "token bukan hex", "HTTP 404 tanpa memantulkan script")
+def _():
+    r = C.get("/shared/bukan_token_hex_valid!!"); return r.status_code == 404, A(r)
+
+@tc(F14, K, SEC, "Membuat tautan berbagi tanpa login", "POST /itineraries/{id}/share tanpa token", "-", "HTTP 401")
+def _():
+    r = C.post("/itineraries/123/share"); return r.status_code == 401, A(r)
+
+@tc(F14, K, FN, "Database mati saat mengakses tautan berbagi", "GET /shared/{token} saat DB down", "DB down", "HTTP 503 ramah")
+def _():
+    u = new_user(); sid = C.post("/itineraries", json={"plan_id": gen(u).json()["plan_id"]}, headers=u["h"]).json()["id"]
+    st = C.post(f"/itineraries/{sid}/share", headers=u["h"]).json()["share_token"]
+    with db_down():
+        r = C.get(f"/shared/{st}")
+    return r.status_code == 503, A(r)
+
+
+# =====================================================================
 # TEMUAN CODE REVIEW
 # =====================================================================
 FINDINGS = [
@@ -868,7 +1004,7 @@ def tulis_excel(results, path):
             ("Nama proyek", "Ruteku - Perencanaan Perjalanan Wisata Berbasis AI dengan Harga Real-Time"),
             ("Repositori", "https://github.com/Nastain-06/Ruteku"), ("Tanggal review", dt.date.today().isoformat()),
             ("Metode", "Eksekusi otomatis (FastAPI TestClient, SQLite, fakeredis) lewat backend/review_runner.py; 'Hasil Aktual' adalah hasil eksekusi nyata."),
-            ("Cakupan fitur", "RF-01, RF-03, RF-04, RF-05, RF-06, RF-08, RF-09, RF-13 (daftar dari README proyek)."),
+            ("Cakupan fitur", "10 Fitur Utama sesuai SRS: RF-01, RF-03, RF-04, RF-05, RF-06, RF-08, RF-09, RF-11, RF-13, RF-14."),
             ("Jenis test case", "Happy Path = fitur berjalan sesuai kebutuhan | Bad Case = input/kondisi salah, termasuk keamanan (kolom Kategori) | Blocker = dependensi/kondisi yang menghentikan fitur."),
             ("Catatan penting", "Dokumen SRS (52 halaman) & SDD (39 halaman) telah ditinjau; seluruh 8 fitur utama telah melalui Code Review dan tahap Debug/Refactor/Reengineering (121 PASS dari 123 test case, 100% Blocker PASS)."),
             ("Status", "PASS = sesuai harapan | FAIL = menemukan masalah (lihat kolom Ref Temuan dan sheet 'Temuan Review').")]
