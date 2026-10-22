@@ -161,6 +161,13 @@ def _():
     r = C.post("/auth/login", json={"email": e.upper(), "password": "Rahasia123"})
     return r.status_code == 200, f"HTTP {r.status_code}"
 
+@tc(F1, H, "-", "Lupa kata sandi & reset kata sandi berhasil dipakai login baru", "POST /auth/forgot-password -> POST /auth/reset-password -> POST /auth/login", "email terdaftar, kode OTP 6 digit valid, password baru", "HTTP 200 pada ketiga langkah")
+def _():
+    u = new_user(); r1 = C.post("/auth/forgot-password", json={"email": u["email"]}); tok = r1.json().get("reset_token", "")
+    r2 = C.post("/auth/reset-password", json={"email": u["email"], "token": tok, "new_password": "PasswordBaru99"})
+    r3 = C.post("/auth/login", json={"email": u["email"], "password": "PasswordBaru99"})
+    return r1.status_code == 200 and r2.status_code == 200 and r3.status_code == 200, f"forgot={r1.status_code}, reset={r2.status_code}, login_baru={r3.status_code}"
+
 @tc(F1, B, FN, "Registrasi dengan email yang sudah terdaftar", "register 2x email sama", "email sama", "HTTP 400 'Email sudah terdaftar'")
 def _():
     e = em(); b = {"email": e, "password": "Rahasia123", "full_name": "A"}; C.post("/auth/register", json=b)
@@ -257,6 +264,14 @@ def _():
     with db_down():
         r = C.post("/auth/register", json={"email": em(), "password": "Rahasia123", "full_name": "A"})
     return r.status_code in (503,), A(r)
+
+@tc(F1, B, SEC, "Reset kata sandi dengan kode OTP palsu atau dipakai ulang (replay)", "POST /auth/reset-password dengan token salah & token bekas", "token='000000' lalu reuse token lama", "Ditolak HTTP 400")
+def _():
+    u = new_user(); r1 = C.post("/auth/forgot-password", json={"email": u["email"]}); tok = r1.json().get("reset_token", "")
+    bad = C.post("/auth/reset-password", json={"email": u["email"], "token": "000000", "new_password": "PasswordBaru99"})
+    ok = C.post("/auth/reset-password", json={"email": u["email"], "token": tok, "new_password": "PasswordBaru99"})
+    replay = C.post("/auth/reset-password", json={"email": u["email"], "token": tok, "new_password": "PasswordKetiga1"})
+    return bad.status_code == 400 and ok.status_code == 200 and replay.status_code == 400, f"otp_salah={bad.status_code}, otp_benar={ok.status_code}, pakai_ulang={replay.status_code}"
 
 @tc(F1, K, FN, "Body request kosong", "POST /auth/register tanpa body", "-", "HTTP 422")
 def _():

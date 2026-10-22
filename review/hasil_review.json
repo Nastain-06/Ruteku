@@ -66,6 +66,19 @@
  },
  {
   "feat": "RF-01 Autentikasi",
+  "jenis": "Happy Path",
+  "kat": "-",
+  "judul": "Lupa kata sandi & reset kata sandi berhasil dipakai login baru",
+  "langkah": "POST /auth/forgot-password -> POST /auth/reset-password -> POST /auth/login",
+  "data": "email terdaftar, kode OTP 6 digit valid, password baru",
+  "expected": "HTTP 200 pada ketiga langkah",
+  "finding": "",
+  "id": "TC-RF-01-06",
+  "actual": "forgot=200, reset=200, login_baru=200",
+  "status": "PASS"
+ },
+ {
+  "feat": "RF-01 Autentikasi",
   "jenis": "Bad Case",
   "kat": "Fungsional",
   "judul": "Registrasi dengan email yang sudah terdaftar",
@@ -73,7 +86,7 @@
   "data": "email sama",
   "expected": "HTTP 400 'Email sudah terdaftar'",
   "finding": "",
-  "id": "TC-RF-01-06",
+  "id": "TC-RF-01-07",
   "actual": "HTTP 400 | {\"detail\":\"Email sudah terdaftar\"}",
   "status": "PASS"
  },
@@ -86,7 +99,7 @@
   "data": "email='bukan-email'",
   "expected": "HTTP 422",
   "finding": "",
-  "id": "TC-RF-01-07",
+  "id": "TC-RF-01-08",
   "actual": "HTTP 422 | {\"detail\":[{\"type\":\"value_error\",\"loc\":[\"body\",\"email\"],\"msg\":\"value is not a valid email address: An email address must",
   "status": "PASS"
  },
@@ -99,7 +112,7 @@
   "data": "password='abc123'",
   "expected": "HTTP 422",
   "finding": "",
-  "id": "TC-RF-01-08",
+  "id": "TC-RF-01-09",
   "actual": "HTTP 422 | {\"detail\":[{\"type\":\"string_too_short\",\"loc\":[\"body\",\"password\"],\"msg\":\"String should have at least 8 characters\",\"input\"",
   "status": "PASS"
  },
@@ -112,7 +125,7 @@
   "data": "password salah",
   "expected": "HTTP 401 'Email atau password salah'",
   "finding": "",
-  "id": "TC-RF-01-09",
+  "id": "TC-RF-01-10",
   "actual": "HTTP 401 | {\"detail\":\"Email atau password salah\"}",
   "status": "PASS"
  },
@@ -125,7 +138,7 @@
   "data": "email acak",
   "expected": "HTTP 401 dengan pesan sama seperti password salah",
   "finding": "",
-  "id": "TC-RF-01-10",
+  "id": "TC-RF-01-11",
   "actual": "HTTP 401 | {\"detail\":\"Email atau password salah\"}",
   "status": "PASS"
  },
@@ -138,7 +151,7 @@
   "data": "email=\"' OR 1=1 --\"",
   "expected": "Ditolak (422/401), bukan 500 dan tidak login",
   "finding": "",
-  "id": "TC-RF-01-11",
+  "id": "TC-RF-01-12",
   "actual": "HTTP 422 | {\"detail\":[{\"type\":\"value_error\",\"loc\":[\"body\",\"email\"],\"msg\":\"value is not a valid email address: An email address must",
   "status": "PASS"
  },
@@ -151,7 +164,7 @@
   "data": "email yang sama",
   "expected": "HTTP 429 'Akun terkunci sementara' (NFR proteksi brute-force)",
   "finding": "",
-  "id": "TC-RF-01-12",
+  "id": "TC-RF-01-13",
   "actual": "HTTP 429 | {\"detail\":\"Akun terkunci sementara, coba lagi dalam 15 menit\"}",
   "status": "PASS"
  },
@@ -164,7 +177,7 @@
   "data": "email korban diketahui",
   "expected": "Pemilik sah tetap bisa login (kunci berbasis IP+email / CAPTCHA)",
   "finding": "F-04",
-  "id": "TC-RF-01-13",
+  "id": "TC-RF-01-14",
   "actual": "pemilik sah dengan password BENAR mendapat HTTP 429 setelah 5 percobaan pihak lain",
   "status": "FAIL"
  },
@@ -177,8 +190,8 @@
   "data": "rata-rata 2 percobaan",
   "expected": "Selisih waktu kecil (rasio < 3x)",
   "finding": "F-05",
-  "id": "TC-RF-01-14",
-  "actual": "email terdaftar=476 ms, tidak terdaftar=489 ms, rasio=1x",
+  "id": "TC-RF-01-15",
+  "actual": "email terdaftar=468 ms, tidak terdaftar=469 ms, rasio=1x",
   "status": "PASS"
  },
  {
@@ -190,7 +203,7 @@
   "data": "password='é'*72 (144 byte)",
   "expected": "201 atau 422, tidak boleh 500",
   "finding": "F-03",
-  "id": "TC-RF-01-15",
+  "id": "TC-RF-01-16",
   "actual": "HTTP 422 | {\"detail\":[{\"type\":\"value_error\",\"loc\":[\"body\",\"password\"],\"msg\":\"Value error, Password tidak boleh lebih dari 72 byte\",",
   "status": "PASS"
  },
@@ -203,7 +216,7 @@
   "data": "password='A'*100",
   "expected": "HTTP 401, bukan 500",
   "finding": "F-03",
-  "id": "TC-RF-01-16",
+  "id": "TC-RF-01-17",
   "actual": "HTTP 401 | {\"detail\":\"Email atau password salah\"}",
   "status": "PASS"
  },
@@ -216,7 +229,7 @@
   "data": "token valid + 2 karakter terakhir diganti",
   "expected": "HTTP 401",
   "finding": "",
-  "id": "TC-RF-01-17",
+  "id": "TC-RF-01-18",
   "actual": "HTTP 401 | {\"detail\":\"Token tidak valid atau kedaluwarsa\"}",
   "status": "PASS"
  },
@@ -229,7 +242,7 @@
   "data": "sub=id korban",
   "expected": "HTTP 401",
   "finding": "",
-  "id": "TC-RF-01-18",
+  "id": "TC-RF-01-19",
   "actual": "HTTP 401 | {\"detail\":\"Token tidak valid atau kedaluwarsa\"}",
   "status": "PASS"
  },
@@ -242,7 +255,7 @@
   "data": "secret lama dari .env.example",
   "expected": "HTTP 401 (secret sudah dirotasi)",
   "finding": "F-01",
-  "id": "TC-RF-01-19",
+  "id": "TC-RF-01-20",
   "actual": "HTTP 401 | {\"detail\":\"Token tidak valid atau kedaluwarsa\"} (setelah rotasi secret di .env)",
   "status": "PASS"
  },
@@ -255,8 +268,8 @@
   "data": "JWT_SECRET tidak di-set",
   "expected": "Aplikasi menolak start / tidak ada default lemah",
   "finding": "F-02",
-  "id": "TC-RF-01-20",
-  "actual": "jwt_secret bawaan = '1ddf1b025838e10430465176416ee8bcd5f2375e76e9a5e0905b5f28901e1fe8' (config.py:8)",
+  "id": "TC-RF-01-21",
+  "actual": "jwt_secret bawaan = 'd57f5eb5190f9dc19620ae0f9bc86ca4a0443ecab3a515745a7731b8e0278db3' (config.py:8)",
   "status": "PASS"
  },
  {
@@ -268,7 +281,7 @@
   "data": "email berbeda-beda",
   "expected": "Ada respons 429 setelah ambang tertentu",
   "finding": "F-04",
-  "id": "TC-RF-01-21",
+  "id": "TC-RF-01-22",
   "actual": "12 permintaan -> status: [201]",
   "status": "FAIL"
  },
@@ -281,7 +294,7 @@
   "data": "full_name berisi script",
   "expected": "Tidak error; UI tidak mengeksekusi script (frontend memakai esc())",
   "finding": "",
-  "id": "TC-RF-01-22",
+  "id": "TC-RF-01-23",
   "actual": "HTTP 201; backend menyimpan apa adanya: <script>alert(1)</script> (aman karena frontend esc())",
   "status": "PASS"
  },
@@ -294,7 +307,7 @@
   "data": "Redis down",
   "expected": "Pesan ramah / HTTP 503, bukan crash 500",
   "finding": "F-10",
-  "id": "TC-RF-01-23",
+  "id": "TC-RF-01-24",
   "actual": "HTTP 503 | {\"detail\":\"Layanan cache/sesi sedang tidak tersedia, silakan coba beberapa saat lagi\"}",
   "status": "PASS"
  },
@@ -307,8 +320,21 @@
   "data": "DB down",
   "expected": "HTTP 503 dengan pesan ramah",
   "finding": "F-10",
-  "id": "TC-RF-01-24",
+  "id": "TC-RF-01-25",
   "actual": "HTTP 503 | {\"detail\":\"Layanan database sedang tidak tersedia, silakan coba beberapa saat lagi\"}",
+  "status": "PASS"
+ },
+ {
+  "feat": "RF-01 Autentikasi",
+  "jenis": "Bad Case",
+  "kat": "Keamanan",
+  "judul": "Reset kata sandi dengan kode OTP palsu atau dipakai ulang (replay)",
+  "langkah": "POST /auth/reset-password dengan token salah & token bekas",
+  "data": "token='000000' lalu reuse token lama",
+  "expected": "Ditolak HTTP 400",
+  "finding": "",
+  "id": "TC-RF-01-26",
+  "actual": "otp_salah=400, otp_benar=200, pakai_ulang=400",
   "status": "PASS"
  },
  {
@@ -320,7 +346,7 @@
   "data": "-",
   "expected": "HTTP 422",
   "finding": "",
-  "id": "TC-RF-01-25",
+  "id": "TC-RF-01-27",
   "actual": "HTTP 422 | {\"detail\":[{\"type\":\"missing\",\"loc\":[\"body\"],\"msg\":\"Field required\",\"input\":null}]}",
   "status": "PASS"
  },
@@ -334,7 +360,7 @@
   "expected": "HTTP 200 + itinerary",
   "finding": "",
   "id": "TC-RF-03-01",
-  "actual": "HTTP 200 | {\"plan_id\":\"1800a456c5bb4a27a5d9cefbbedd197b\",\"origin\":\"Samarinda\",\"destination\":\"Bali\",\"",
+  "actual": "HTTP 200 | {\"plan_id\":\"716cdd62135a4d5c8eeda0b92790fb6e\",\"origin\":\"Samarinda\",\"destination\":\"Bali\",\"",
   "status": "PASS"
  },
  {
@@ -1127,7 +1153,7 @@
   "expected": "Tetap 200 (ambil langsung dari penyedia)",
   "finding": "F-10",
   "id": "TC-RF-06-12",
-  "actual": "HTTP 200 | {\"location\":\"Bali\",\"hotel_per_night\":{\"value\":572000,\"source\":\"mock-ota\",\"fetched_at\":\"2026-10-22T06:01:03.662033+00:00\"",
+  "actual": "HTTP 200 | {\"location\":\"Bali\",\"hotel_per_night\":{\"value\":572000,\"source\":\"mock-ota\",\"fetched_at\":\"2026-10-22T06:08:27.353408+00:00\"",
   "status": "PASS"
  },
  {
@@ -1283,7 +1309,7 @@
   "expected": "HTTP 201 + id",
   "finding": "",
   "id": "TC-RF-09-01",
-  "actual": "HTTP 201 | {\"id\":\"7f58b7ec-bb2c-4cce-868a-a43b8e8eef6f\",\"title\":\"Perjalanan ke Bali\"}",
+  "actual": "HTTP 201 | {\"id\":\"b0a1cab1-b2f6-4e14-a8a4-4c41c335dace\",\"title\":\"Perjalanan ke Bali\"}",
   "status": "PASS"
  },
  {
@@ -1296,7 +1322,7 @@
   "expected": "title sama",
   "finding": "",
   "id": "TC-RF-09-02",
-  "actual": "HTTP 201 | {\"id\":\"ae9cc882-7113-4f54-86fc-0eda506ae10e\",\"title\":\"Liburan Bali\"}",
+  "actual": "HTTP 201 | {\"id\":\"042fc235-55a5-41f3-b2c6-ce031604546a\",\"title\":\"Liburan Bali\"}",
   "status": "PASS"
  },
  {
@@ -1309,7 +1335,7 @@
   "expected": "'Perjalanan ke Bali'",
   "finding": "",
   "id": "TC-RF-09-03",
-  "actual": "HTTP 201 | {\"id\":\"9e083c22-d52c-40bf-a43f-9bfcd8a12865\",\"title\":\"Perjalanan ke Bali\"}",
+  "actual": "HTTP 201 | {\"id\":\"23a7df2f-4d30-4f1a-9423-cfd5ca5dc5a3\",\"title\":\"Perjalanan ke Bali\"}",
   "status": "PASS"
  },
  {

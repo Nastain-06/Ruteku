@@ -21,6 +21,23 @@ class LoginIn(BaseModel):
     password: str
 
 
+class ForgotPasswordIn(BaseModel):
+    email: EmailStr
+
+
+class ResetPasswordIn(BaseModel):
+    email: EmailStr
+    token: str = Field(min_length=4, max_length=64)
+    new_password: str = Field(min_length=8, max_length=72)
+
+    @field_validator("new_password")
+    @classmethod
+    def validate_new_password_bytes(cls, v: str) -> str:
+        if len(v.encode("utf-8")) > 72:
+            raise ValueError("Password tidak boleh lebih dari 72 byte")
+        return v
+
+
 class GenerateIn(BaseModel):  # RF-03: preferensi perjalanan dari wizard
     origin: str = Field(min_length=2, max_length=100)
     destination: str = Field(min_length=2, max_length=100)

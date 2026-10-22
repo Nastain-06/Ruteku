@@ -2,6 +2,7 @@ from contextlib import asynccontextmanager
 from datetime import date as dt_date
 import math
 import os
+import secrets
 import time
 import uuid
 from fastapi import Depends, FastAPI, HTTPException, Query, Request
@@ -18,7 +19,7 @@ from .config import settings
 from .db import Base, SessionLocal, engine, get_db
 from .models import Destination, Itinerary, User
 from .prices import BASE_HOTEL, BASE_HOTEL_DEFAULT, BASE_TRANSPORT_PP, get_price
-from .schemas import GenerateIn, LoginIn, RegisterIn, SaveIn
+from .schemas import ForgotPasswordIn, GenerateIn, LoginIn, RegisterIn, ResetPasswordIn, SaveIn
 from .security import DUMMY_HASH, create_token, current_claims, current_user, hash_password, verify_password
 from .seed import seed
 
@@ -98,6 +99,36 @@ def logout(c: dict = Depends(current_claims)):
     ttl = max(int(c["exp"] - time.time()), 1)
     cache.r.set(f"blacklist:{c['jti']}", 1, ex=ttl)  # token masuk blacklist Redis
     return {"message": "Logout berhasil"}
+
+
+@app.post("/auth/forgot-password")
+def forgot_password(body: ForgotPasswordIn, db: Session = Depends(get_db)):
+    email = body.email.lower()
+    u = db.scalar(select(User).where(User.email == email))
+    if not u:
+        raise HTTPException(404, "Email tidak terdaftar")
+    code = f"{secrets.randbelow(900000) + 100000}"
+    cache.r.set(f"reset_pw:{email}", code, ex=900)  # kode OTP berlaku 15 menit
+    return {
+        "message": "Kode pemulihan kata sandi berhasil dibuat (berlaku 15 menit)",
+        "reset_token": code,
+    }
+
+
+@app.post("/auth/reset-password")
+def reset_password(body: ResetPasswordIn, db: Session = Depends(get_db)):
+    email = body.email.lower()
+    saved_code = cache.r.get(f"reset_pw:{email}")
+    if not saved_code or saved_code != body.token.strip():
+        raise HTTPException(400, "Kode pemulihan tidak valid atau sudah kedaluwarsa")
+    u = db.scalar(select(User).where(User.email == email))
+    if not u:
+        raise HTTPException(404, "Akun tidak ditemukan")
+    u.password_hash = hash_password(body.new_password)
+    db.commit()
+    cache.r.delete(f"reset_pw:{email}")
+    cache.r.delete(f"login_fail:{email}")  # buka kembali kunci brute-force jika sempat terkunci
+    return {"message": "Kata sandi berhasil diperbarui, silakan masuk dengan kata sandi baru"}
 
 
 # ---------- RF-05 Pencarian destinasi ----------

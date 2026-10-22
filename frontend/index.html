@@ -297,16 +297,25 @@
             <label class="lbl">Email</label>
             <div class="field"><i class="fa-regular fa-envelope text-slate-400"></i><input type="email" id="auth-email" required placeholder="nama@email.com" class="inp"></div>
           </div>
-          <div>
-            <label class="lbl">Kata sandi</label>
+          <div id="field-reset-token" class="hidden">
+            <label class="lbl">Kode pemulihan (6 digit)</label>
+            <div class="field"><i class="fa-solid fa-key text-slate-400"></i><input id="auth-reset-token" maxlength="10" placeholder="Contoh: 123456" class="inp font-mono tracking-widest"></div>
+          </div>
+          <div id="field-password">
+            <div class="flex items-center justify-between mb-1.5">
+              <label id="lbl-password" class="lbl !mb-0">Kata sandi</label>
+              <button type="button" id="btn-forgot-link" onclick="setAuthMode('forgot')" class="text-xs font-bold text-brand-700 hover:text-brand-800 hover:underline">Lupa kata sandi?</button>
+            </div>
             <div class="field">
               <i class="fa-solid fa-lock text-slate-400"></i>
               <input type="password" id="auth-password" required minlength="8" maxlength="72" placeholder="Minimal 8 karakter" class="inp">
               <button type="button" onclick="togglePw()" class="text-slate-400 hover:text-slate-600"><i id="pw-eye" class="fa-regular fa-eye"></i></button>
             </div>
           </div>
+          <div id="auth-info" class="hidden text-xs text-emerald-800 bg-emerald-50 border border-emerald-200 rounded-xl px-3 py-2.5"></div>
           <div id="auth-error" class="hidden text-sm text-rose-700 bg-rose-50 border border-rose-200 rounded-xl px-3 py-2.5"></div>
           <button type="submit" id="auth-submit" class="w-full py-3.5 rounded-xl bg-ink hover:bg-slate-800 text-white font-bold transition">Masuk</button>
+          <button type="button" id="btn-back-login" onclick="setAuthMode('login')" class="hidden w-full py-2 text-xs font-bold text-slate-500 hover:text-slate-800 transition">← Kembali ke halaman Masuk</button>
         </form>
       </div>
     </div>
@@ -481,20 +490,64 @@
       const on = 'px-4 py-2 rounded-lg transition bg-white shadow text-slate-900', off = 'px-4 py-2 rounded-lg transition text-slate-500';
       $('tab-login').className = mode === 'login' ? on : off;
       $('tab-register').className = mode === 'register' ? on : off;
-      $('field-fullname').classList.toggle('hidden', mode === 'login');
+      $('auth-error').classList.add('hidden');
+      if (mode !== 'reset') $('auth-info').classList.add('hidden');
+
+      $('field-fullname').classList.toggle('hidden', mode !== 'register');
       $('auth-name').required = mode === 'register';
-      $('auth-title').textContent = mode === 'login' ? 'Selamat datang kembali' : 'Buat akun baru';
-      $('auth-sub').textContent = mode === 'login' ? 'Masuk untuk menyusun dan menyimpan itinerary.' : 'Gratis, hanya butuh beberapa detik.';
-      $('auth-submit').textContent = mode === 'login' ? 'Masuk' : 'Daftar sekarang';
+
+      $('field-reset-token').classList.toggle('hidden', mode !== 'reset');
+      $('auth-reset-token').required = mode === 'reset';
+
+      $('field-password').classList.toggle('hidden', mode === 'forgot');
+      $('auth-password').required = mode !== 'forgot';
+      $('btn-forgot-link').classList.toggle('hidden', mode !== 'login');
+      $('btn-back-login').classList.toggle('hidden', mode !== 'forgot' && mode !== 'reset');
+      $('lbl-password').textContent = mode === 'reset' ? 'Kata sandi baru' : 'Kata sandi';
+
+      if (mode === 'login') {
+        $('auth-title').textContent = 'Selamat datang kembali';
+        $('auth-sub').textContent = 'Masuk untuk menyusun dan menyimpan itinerary.';
+        $('auth-submit').textContent = 'Masuk';
+      } else if (mode === 'register') {
+        $('auth-title').textContent = 'Buat akun baru';
+        $('auth-sub').textContent = 'Gratis, hanya butuh beberapa detik.';
+        $('auth-submit').textContent = 'Daftar sekarang';
+      } else if (mode === 'forgot') {
+        $('auth-title').textContent = 'Lupa kata sandi?';
+        $('auth-sub').textContent = 'Masukkan email akunmu untuk mendapatkan kode pemulihan.';
+        $('auth-submit').textContent = 'Kirim Kode Pemulihan';
+      } else if (mode === 'reset') {
+        $('auth-title').textContent = 'Atur kata sandi baru';
+        $('auth-sub').textContent = 'Masukkan kode 6 digit dan kata sandi barumu.';
+        $('auth-submit').textContent = 'Simpan Kata Sandi Baru';
+      }
     }
 
     async function handleAuthSubmit(e) {
       e.preventDefault();
       const err = $('auth-error'); err.classList.add('hidden');
+      const info = $('auth-info');
       const btn = $('auth-submit'); const label = btn.textContent;
       btn.disabled = true; btn.innerHTML = '<i class="fa-solid fa-spinner animate-spin"></i>';
       const email = $('auth-email').value.trim(), password = $('auth-password').value;
       try {
+        if (authMode === 'forgot') {
+          const res = await api('/auth/forgot-password', { method: 'POST', body: JSON.stringify({ email }) });
+          setAuthMode('reset');
+          $('auth-reset-token').value = res.reset_token || '';
+          info.innerHTML = `<i class="fa-solid fa-circle-check mr-1"></i> ${esc(res.message)}.<br><b>Kode OTP (Mode Demo): <span class="font-mono text-sm underline">${esc(res.reset_token)}</span></b>`;
+          info.classList.remove('hidden');
+          return;
+        }
+        if (authMode === 'reset') {
+          const tokenVal = $('auth-reset-token').value.trim();
+          const res = await api('/auth/reset-password', { method: 'POST', body: JSON.stringify({ email, token: tokenVal, new_password: password }) });
+          toast(res.message || 'Kata sandi berhasil diperbarui!');
+          $('auth-password').value = '';
+          setAuthMode('login');
+          return;
+        }
         if (authMode === 'register') {
           await api('/auth/register', { method: 'POST', body: JSON.stringify({ email, password, full_name: $('auth-name').value.trim() }) });
         }
@@ -506,7 +559,7 @@
         $('auth-form').reset();
       } catch (ex) {
         err.textContent = ex.message; err.classList.remove('hidden');
-      } finally { btn.disabled = false; btn.textContent = label; }
+      } finally { btn.disabled = false; if (authMode === 'login' || authMode === 'register') btn.textContent = authMode === 'login' ? 'Masuk' : 'Daftar sekarang'; else btn.textContent = authMode === 'forgot' ? 'Kirim Kode Pemulihan' : 'Simpan Kata Sandi Baru'; }
     }
 
     async function handleLogout() {
