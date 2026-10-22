@@ -857,14 +857,29 @@ def _():
     masih_ada = C.get(f"/itineraries/{sid}", headers=u["h"]).status_code == 200
     return r.status_code == 404 and masih_ada, f"HTTP {r.status_code}, data aman={masih_ada}"
 
+@tc(F11, B, SEC, "Token setelah logout ditolak saat menghapus rencana", "logout lalu DELETE /itineraries/{id}", "token yang sudah di-blacklist", "HTTP 401", "F-21")
+def _():
+    u = new_user(); sid = C.post("/itineraries", json={"plan_id": gen(u).json()["plan_id"]}, headers=u["h"]).json()["id"]
+    C.post("/auth/logout", headers=u["h"])
+    r = C.delete(f"/itineraries/{sid}", headers=u["h"])
+    return r.status_code == 401, A(r)
+
 @tc(F11, K, SEC, "Menghapus rencana tanpa login (tanpa token)", "DELETE /itineraries/{id} tanpa header Authorization", "-", "HTTP 401")
 def _():
     r = C.delete("/itineraries/123"); return r.status_code == 401, A(r)
 
-@tc(F11, K, FN, "Database mati saat menghapus rencana", "DELETE /itineraries/{id} saat DB down", "DB down", "HTTP 503 ramah")
+@tc(F11, K, FN, "Database mati saat menghapus rencana", "DELETE /itineraries/{id} saat DB down", "DB down", "HTTP 503 ramah", "F-10")
 def _():
     u = new_user(); sid = C.post("/itineraries", json={"plan_id": gen(u).json()["plan_id"]}, headers=u["h"]).json()["id"]
     with db_down():
+        r = C.delete(f"/itineraries/{sid}", headers=u["h"])
+    return r.status_code == 503, A(r)
+
+@tc(F11, K, FN, "Redis mati saat menghapus rencana yang memiliki shareable link", "DELETE /itineraries/{id} saat Redis down", "Redis down", "HTTP 503 ramah", "F-21")
+def _():
+    u = new_user(); sid = C.post("/itineraries", json={"plan_id": gen(u).json()["plan_id"]}, headers=u["h"]).json()["id"]
+    C.post(f"/itineraries/{sid}/share", headers=u["h"])
+    with redis_down():
         r = C.delete(f"/itineraries/{sid}", headers=u["h"])
     return r.status_code == 503, A(r)
 
@@ -920,16 +935,27 @@ def _():
 def _():
     r = C.get("/shared/bukan_token_hex_valid!!"); return r.status_code == 404, A(r)
 
+@tc(F14, B, SEC, "Path traversal pada parameter token /shared/{token}", "GET /shared/..%2f..%2fetc%2fpasswd", "token berisi '../'", "HTTP 404, tidak membocorkan file sistem", "F-22")
+def _():
+    r = C.get("/shared/..%2f..%2fetc%2fpasswd"); return r.status_code == 404, A(r)
+
 @tc(F14, K, SEC, "Membuat tautan berbagi tanpa login", "POST /itineraries/{id}/share tanpa token", "-", "HTTP 401")
 def _():
     r = C.post("/itineraries/123/share"); return r.status_code == 401, A(r)
 
-@tc(F14, K, FN, "Database mati saat mengakses tautan berbagi", "GET /shared/{token} saat DB down", "DB down", "HTTP 503 ramah")
+@tc(F14, K, FN, "Database mati saat mengakses tautan berbagi", "GET /shared/{token} saat DB down", "DB down", "HTTP 503 ramah", "F-10")
 def _():
     u = new_user(); sid = C.post("/itineraries", json={"plan_id": gen(u).json()["plan_id"]}, headers=u["h"]).json()["id"]
     st = C.post(f"/itineraries/{sid}/share", headers=u["h"]).json()["share_token"]
     with db_down():
         r = C.get(f"/shared/{st}")
+    return r.status_code == 503, A(r)
+
+@tc(F14, K, FN, "Redis mati saat membuat tautan berbagi", "POST /itineraries/{id}/share saat Redis down", "Redis down", "HTTP 503 ramah", "F-22")
+def _():
+    u = new_user(); sid = C.post("/itineraries", json={"plan_id": gen(u).json()["plan_id"]}, headers=u["h"]).json()["id"]
+    with redis_down():
+        r = C.post(f"/itineraries/{sid}/share", headers=u["h"])
     return r.status_code == 503, A(r)
 
 
@@ -956,7 +982,9 @@ FINDINGS = [
  ("F-17", "Rendah", "frontend/index.html (penyimpanan token, onclick inline)", "Token JWT disimpan di localStorage dan memakai atribut onclick inline.", "Jika ada celah XSS di masa depan, token di localStorage dapat diakses script.", "Pertimbangkan cookie HttpOnly+SameSite pada arsitektur produksi; saat ini sudah dimitigasi dengan fungsi esc() di frontend.", "Terbuka"),
  ("F-18", "Rendah", "backend/app/main.py:152,160", "Semua harga (hotel, tiket) memakai tanggal hari pertama untuk seluruh hari perjalanan.", "Estimasi kurang akurat jika harga berubah antar hari dalam satu perjalanan.", "Ambil harga per tanggal kunjungan masing-masing hari.", "Terbuka"),
  ("F-19", "Rendah", "backend/app/main.py:69-74", "Cek-lalu-tulis email tanpa menangani IntegrityError: dua registrasi serentak dapat menghasilkan 500.", "Error 500 pada kondisi race condition registrasi bersamaan.", "Tangkap IntegrityError, lakukan db.rollback(), dan kembalikan HTTP 400.", "Diperbaiki"),
- ("F-20", "Info", "Proses pengembangan", "Sebelumnya hanya ada smoke_test.py (happy path utama); belum ada suite pengujian regresi lengkap.", "Regresi sulit terdeteksi.", "Suite 123 test case di review_runner.py kini menjadi pengujian regresi otomatis untuk Happy Path, Bad Case, Security, dan Blocker.", "Diperbaiki"),
+ ("F-20", "Info", "Proses pengembangan", "Sebelumnya hanya ada smoke_test.py (happy path utama); belum ada suite pengujian regresi lengkap.", "Regresi sulit terdeteksi.", "Suite 149 test case di review_runner.py kini menjadi pengujian regresi otomatis untuk Happy Path, Bad Case, Security, dan Blocker.", "Diperbaiki"),
+ ("F-21", "Tinggi", "backend/app/main.py:302-312 (RF-11 Hapus Rencana)", "Fitur RF-11 (UC-13 Penghapusan Rencana Perjalanan) sebelumnya belum diimplementasikan di backend maupun frontend, dan penghapusan wajib menonaktifkan shareable link terkait serta memvalidasi kepemilikan (anti-IDOR).", "Pengguna tidak dapat menghapus rencana perjalanan lama dan tautan berbagi berisiko tetap aktif setelah rencana dihapus.", "Implementasikan DELETE /itineraries/{iid} dengan verifikasi r.user_id == user.id, pencabutan key Redis share:{token}, dan tombol Hapus dengan konfirmasi di UI.", "Diperbaiki"),
+ ("F-22", "Tinggi", "backend/app/main.py:315-344 (RF-14 Berbagi Rencana)", "Fitur RF-14 (UC-16 Berbagi Rencana Perjalanan via tautan unik read-only tanpa login) sebelumnya belum tersedia, serta memerlukan validasi format token hex 32-karakter dan penyaringan field internal.", "Pengguna tidak dapat membagikan itinerary kepada rekan perjalanan tanpa login.", "Implementasikan POST /itineraries/{iid}/share dan GET /shared/{token} (publik read-only) dengan validasi regex hex dan sanitasi field share_token.", "Diperbaiki"),
 ]
 
 

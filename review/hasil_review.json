@@ -1730,6 +1730,19 @@
  },
  {
   "feat": "RF-11 Hapus Rencana",
+  "jenis": "Bad Case",
+  "kat": "Keamanan",
+  "judul": "Token setelah logout ditolak saat menghapus rencana",
+  "langkah": "logout lalu DELETE /itineraries/{id}",
+  "data": "token yang sudah di-blacklist",
+  "expected": "HTTP 401",
+  "finding": "F-21",
+  "id": "TC-RF-11-09",
+  "actual": "HTTP 401 | {\"detail\":\"Sesi sudah berakhir\"}",
+  "status": "PASS"
+ },
+ {
+  "feat": "RF-11 Hapus Rencana",
   "jenis": "Blocker",
   "kat": "Keamanan",
   "judul": "Menghapus rencana tanpa login (tanpa token)",
@@ -1737,7 +1750,7 @@
   "data": "-",
   "expected": "HTTP 401",
   "finding": "",
-  "id": "TC-RF-11-09",
+  "id": "TC-RF-11-10",
   "actual": "HTTP 401 | {\"detail\":\"Token tidak ada\"}",
   "status": "PASS"
  },
@@ -1749,9 +1762,22 @@
   "langkah": "DELETE /itineraries/{id} saat DB down",
   "data": "DB down",
   "expected": "HTTP 503 ramah",
-  "finding": "",
-  "id": "TC-RF-11-10",
+  "finding": "F-10",
+  "id": "TC-RF-11-11",
   "actual": "HTTP 503 | {\"detail\":\"Layanan database sedang tidak tersedia, silakan coba beberapa saat lagi\"}",
+  "status": "PASS"
+ },
+ {
+  "feat": "RF-11 Hapus Rencana",
+  "jenis": "Blocker",
+  "kat": "Fungsional",
+  "judul": "Redis mati saat menghapus rencana yang memiliki shareable link",
+  "langkah": "DELETE /itineraries/{id} saat Redis down",
+  "data": "Redis down",
+  "expected": "HTTP 503 ramah",
+  "finding": "F-21",
+  "id": "TC-RF-11-12",
+  "actual": "HTTP 503 | {\"detail\":\"Layanan cache/sesi sedang tidak tersedia, silakan coba beberapa saat lagi\"}",
   "status": "PASS"
  },
  {
@@ -1860,6 +1886,19 @@
  },
  {
   "feat": "RF-14 Berbagi Rencana",
+  "jenis": "Bad Case",
+  "kat": "Keamanan",
+  "judul": "Path traversal pada parameter token /shared/{token}",
+  "langkah": "GET /shared/..%2f..%2fetc%2fpasswd",
+  "data": "token berisi '../'",
+  "expected": "HTTP 404, tidak membocorkan file sistem",
+  "finding": "F-22",
+  "id": "TC-RF-14-09",
+  "actual": "HTTP 404 | {\"detail\":\"Not Found\"}",
+  "status": "PASS"
+ },
+ {
+  "feat": "RF-14 Berbagi Rencana",
   "jenis": "Blocker",
   "kat": "Keamanan",
   "judul": "Membuat tautan berbagi tanpa login",
@@ -1867,7 +1906,7 @@
   "data": "-",
   "expected": "HTTP 401",
   "finding": "",
-  "id": "TC-RF-14-09",
+  "id": "TC-RF-14-10",
   "actual": "HTTP 401 | {\"detail\":\"Token tidak ada\"}",
   "status": "PASS"
  },
@@ -1879,9 +1918,22 @@
   "langkah": "GET /shared/{token} saat DB down",
   "data": "DB down",
   "expected": "HTTP 503 ramah",
-  "finding": "",
-  "id": "TC-RF-14-10",
+  "finding": "F-10",
+  "id": "TC-RF-14-11",
   "actual": "HTTP 503 | {\"detail\":\"Layanan database sedang tidak tersedia, silakan coba beberapa saat lagi\"}",
+  "status": "PASS"
+ },
+ {
+  "feat": "RF-14 Berbagi Rencana",
+  "jenis": "Blocker",
+  "kat": "Fungsional",
+  "judul": "Redis mati saat membuat tautan berbagi",
+  "langkah": "POST /itineraries/{id}/share saat Redis down",
+  "data": "Redis down",
+  "expected": "HTTP 503 ramah",
+  "finding": "F-22",
+  "id": "TC-RF-14-12",
+  "actual": "HTTP 503 | {\"detail\":\"Layanan cache/sesi sedang tidak tersedia, silakan coba beberapa saat lagi\"}",
   "status": "PASS"
  }
 ]
