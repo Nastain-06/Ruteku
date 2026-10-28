@@ -1,3 +1,4 @@
+import time
 import uuid
 from datetime import datetime, timedelta, timezone
 import bcrypt
@@ -32,7 +33,14 @@ def verify_password(p: str, h: str) -> bool:
 
 def create_token(user_id: str) -> str:
     exp = datetime.now(timezone.utc) + timedelta(hours=settings.jwt_hours)
-    return jwt.encode({"sub": user_id, "jti": uuid.uuid4().hex, "exp": exp}, settings.jwt_secret, algorithm="HS256")
+    iat_ms = int(time.time() * 1000)
+    return jwt.encode({"sub": user_id, "jti": uuid.uuid4().hex, "exp": exp, "iat_ms": iat_ms},
+                      settings.jwt_secret, algorithm="HS256")
+
+
+def revoke_user_sessions(user_id: str) -> None:
+    """Semua token milik user yang dibuat sebelum saat ini tidak berlaku lagi (dipakai saat ganti/reset sandi)."""
+    cache.r.set(f"valid_after:{user_id}", int(time.time() * 1000), ex=settings.jwt_hours * 3600 + 60)
 
 
 def current_claims(cred: HTTPAuthorizationCredentials | None = Depends(bearer)) -> dict:
@@ -44,6 +52,9 @@ def current_claims(cred: HTTPAuthorizationCredentials | None = Depends(bearer)) 
         raise HTTPException(401, "Token tidak valid atau kedaluwarsa")
     if cache.r.exists(f"blacklist:{c['jti']}"):
         raise HTTPException(401, "Sesi sudah berakhir")
+    va = cache.r.get(f"valid_after:{c.get('sub')}")
+    if va and int(c.get("iat_ms", 0)) < int(va):
+        raise HTTPException(401, "Sesi sudah berakhir karena kata sandi diubah")
     return c
 
 

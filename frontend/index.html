@@ -366,6 +366,97 @@
     </div>
   </div>
 
+  <!-- ================= MODAL PROFIL & PREFERENSI (RF-02) ================= -->
+  <div id="profile-modal" class="fixed inset-0 z-50 hidden items-center justify-center p-3 sm:p-4 bg-ink/70 backdrop-blur-sm">
+    <div class="bg-white rounded-3xl max-w-xl w-full max-h-[92dvh] overflow-y-auto scroll-thin p-6 sm:p-8 shadow-2xl relative fade-up">
+      <button onclick="closeProfileModal()" class="absolute right-5 top-5 w-8 h-8 rounded-full hover:bg-slate-100 text-slate-400"><i class="fa-solid fa-xmark"></i></button>
+      <div class="flex items-center gap-3">
+        <div class="w-11 h-11 rounded-2xl bg-brand-50 text-brand-600 flex items-center justify-center text-lg"><i class="fa-solid fa-user-gear"></i></div>
+        <div>
+          <h3 class="text-xl font-extrabold text-slate-900">Profil & Preferensi Default</h3>
+          <p id="profile-email" class="text-xs text-slate-500"></p>
+        </div>
+      </div>
+
+      <form onsubmit="handleSaveProfile(event)" class="mt-6 space-y-4">
+        <div class="grid sm:grid-cols-2 gap-4">
+          <div>
+            <label class="lbl">Nama lengkap</label>
+            <div class="field"><i class="fa-regular fa-user text-slate-400"></i><input id="prof-name" required maxlength="120" class="inp"></div>
+          </div>
+          <div>
+            <label class="lbl">Kota asal default</label>
+            <div class="field"><i class="fa-solid fa-plane-departure text-slate-400"></i><input id="prof-origin" required minlength="2" maxlength="100" class="inp"></div>
+          </div>
+          <div>
+            <label class="lbl">Peserta default (orang)</label>
+            <div class="field"><i class="fa-solid fa-users text-slate-400"></i><input type="number" id="prof-travelers" min="1" max="50" required class="inp"></div>
+          </div>
+          <div>
+            <label class="lbl">Anggaran default (Rp)</label>
+            <div class="field"><span class="text-xs font-bold text-slate-400">Rp</span><input type="number" id="prof-budget" min="100000" step="100000" required class="inp"></div>
+          </div>
+        </div>
+        <div>
+          <label class="lbl">Minat wisata default</label>
+          <div id="prof-interests" class="flex flex-wrap gap-2"></div>
+        </div>
+        <button type="submit" id="btn-save-profile" class="w-full py-3 rounded-xl bg-ink hover:bg-slate-800 text-white text-sm font-bold transition">Simpan Profil & Terapkan ke Form</button>
+      </form>
+
+      <div class="border-t border-slate-200 mt-6 pt-5">
+        <h4 class="text-sm font-extrabold text-slate-900"><i class="fa-solid fa-key text-amber-500 mr-1.5"></i>Ubah Kata Sandi</h4>
+        <form onsubmit="handleChangePassword(event)" class="mt-3 space-y-3">
+          <div class="grid sm:grid-cols-2 gap-3">
+            <div>
+              <label class="lbl">Kata sandi saat ini</label>
+              <div class="field"><input type="password" id="pw-current" required minlength="1" placeholder="Sandi lama" class="inp"></div>
+            </div>
+            <div>
+              <label class="lbl">Kata sandi baru</label>
+              <div class="field"><input type="password" id="pw-new" required minlength="8" maxlength="72" placeholder="Min. 8 karakter" class="inp"></div>
+            </div>
+          </div>
+          <button type="submit" class="px-4 py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-800 text-xs font-bold transition">Perbarui Kata Sandi</button>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- ================= MODAL EDIT RENCANA (RF-10) ================= -->
+  <div id="edit-modal" class="fixed inset-0 z-[55] hidden items-center justify-center p-3 sm:p-4 bg-ink/70 backdrop-blur-sm">
+    <div class="bg-white rounded-3xl max-w-2xl w-full max-h-[92dvh] overflow-y-auto scroll-thin p-6 sm:p-8 shadow-2xl relative fade-up">
+      <button onclick="closeEditModal()" class="absolute right-5 top-5 w-8 h-8 rounded-full hover:bg-slate-100 text-slate-400"><i class="fa-solid fa-xmark"></i></button>
+      <h3 class="text-xl font-extrabold text-slate-900"><i class="fa-solid fa-pen-to-square text-brand-600 mr-2"></i>Edit Rencana Perjalanan</h3>
+      <p class="text-xs text-slate-500 mt-1">Ubah judul, jumlah peserta, anggaran, atau jadwal destinasi harian. Biaya akan dihitung ulang otomatis.</p>
+      <form onsubmit="handleSaveEdit(event)" class="mt-5 space-y-4">
+        <input type="hidden" id="edit-id">
+        <div>
+          <label class="lbl">Judul rencana</label>
+          <div class="field"><i class="fa-solid fa-heading text-slate-400"></i><input id="edit-title" required maxlength="200" class="inp"></div>
+        </div>
+        <div class="grid sm:grid-cols-2 gap-4">
+          <div>
+            <label class="lbl">Jumlah peserta (orang)</label>
+            <div class="field"><i class="fa-solid fa-users text-slate-400"></i><input type="number" id="edit-travelers" min="1" max="50" required class="inp"></div>
+          </div>
+          <div>
+            <label class="lbl">Total anggaran (Rp)</label>
+            <div class="field"><span class="text-xs font-bold text-slate-400">Rp</span><input type="number" id="edit-budget" min="100000" step="100000" required class="inp"></div>
+          </div>
+        </div>
+        <div>
+          <label class="lbl">Jadwal destinasi per hari</label>
+          <div id="edit-days-box" class="space-y-4 max-h-72 overflow-y-auto pr-1 scroll-thin"></div>
+        </div>
+        <div class="flex justify-end gap-2 pt-2">
+          <button type="button" onclick="closeEditModal()" class="px-4 py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-sm font-bold">Batal</button>
+          <button type="submit" id="btn-save-edit" class="px-5 py-2.5 rounded-xl bg-ink hover:bg-slate-800 text-white text-sm font-bold">Simpan Perubahan</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
   <!-- Toast -->
   <div id="toast" class="fixed top-20 inset-x-4 sm:left-auto sm:right-5 z-[60] hidden flex justify-center sm:block"></div>
 
@@ -506,9 +597,12 @@
       const box = $('auth-box');
       if (token() && name) {
         box.innerHTML = `
-          <div class="flex items-center gap-2 bg-white/10 border border-white/10 rounded-full pl-1 pr-1 py-1">
-            <span class="w-8 h-8 rounded-full bg-gradient-to-br from-brand-400 to-sky-500 text-white font-bold text-sm flex items-center justify-center">${esc(name.charAt(0).toUpperCase())}</span>
-            <span class="hidden sm:block text-sm font-semibold text-white pr-1">${esc(name)}</span>
+          <div class="flex items-center gap-1.5 bg-white/10 border border-white/10 rounded-full pl-1 pr-1 py-1">
+            <button type="button" onclick="openProfileModal()" title="Profil & Preferensi Default (RF-02)" class="flex items-center gap-2 hover:bg-white/10 rounded-full pr-2.5 transition">
+              <span class="w-8 h-8 rounded-full bg-gradient-to-br from-brand-400 to-sky-500 text-white font-bold text-sm flex items-center justify-center">${esc(name.charAt(0).toUpperCase())}</span>
+              <span class="hidden sm:block text-sm font-semibold text-white">${esc(name)}</span>
+              <i class="fa-solid fa-gear text-xs text-slate-300"></i>
+            </button>
             <button onclick="handleLogout()" title="Keluar" class="w-8 h-8 rounded-full hover:bg-white/10 text-slate-300 hover:text-rose-400"><i class="fa-solid fa-arrow-right-from-bracket text-sm"></i></button>
           </div>`;
       } else {
@@ -591,7 +685,7 @@
         const data = await api('/auth/login', { method: 'POST', body: JSON.stringify({ email, password }) });
         localStorage.setItem('ruteku_token', data.access_token);
         localStorage.setItem('ruteku_user_name', data.full_name);
-        closeAuthModal(); renderAuth();
+        closeAuthModal(); renderAuth(); syncPreferencesToForm();
         toast(`Halo, ${data.full_name}! 👋`);
         $('auth-form').reset();
       } catch (ex) {
@@ -741,20 +835,30 @@
           <i class="fa-solid ${isInfo ? 'fa-circle-info text-slate-400' : 'fa-triangle-exclamation text-amber-500'} mt-0.5"></i><span>${esc(w)}</span></div>`;
       }).join('');
 
+      const routeSum = plan.route_summary || { total_distance_km: 0, total_travel_time_min: 0 };
       let num = 0;
       const days = plan.days.map((d, di) => {
         const color = DAY_COLORS[di % DAY_COLORS.length];
         const date = new Date(plan.start_date + 'T00:00:00'); date.setDate(date.getDate() + di);
+        const dayDist = d.day_distance_km || 0;
+        const dayTime = d.day_travel_time_min || 0;
         const items = d.items.map((it, k) => {
           num++;
           const cat = CATS[it.category] || CATS['Alam'];
           const p = it.ticket_price || {};
           const price = p.value === null || p.value === undefined ? '<span class="text-slate-400">N/A</span>' : p.value === 0 ? '<span class="text-brand-600 font-bold">Gratis</span>' : rp(p.value);
           const photo = getPhoto(it.name, plan.destination);
+          const distKm = it.distance_from_prev_km || 0;
+          const tMin = it.travel_time_min || 0;
+          const legBadge = (k > 0 && distKm > 0)
+            ? `<div class="mb-2 inline-flex items-center gap-1.5 text-[11px] font-bold text-sky-700 bg-sky-50 border border-sky-200 px-2.5 py-1 rounded-full">
+                 <i class="fa-solid fa-car-side text-sky-500"></i> ± ${distKm} km · ~${tMin} mnt dari lokasi sebelumnya
+               </div>` : '';
           return `
             <div class="relative pl-12 pb-5 last:pb-0">
               ${k < d.items.length - 1 ? `<div class="absolute left-[15px] top-8 bottom-0 w-0.5" style="background:${color}33"></div>` : ''}
               <div class="absolute left-0 top-0 w-8 h-8 rounded-full text-white text-xs font-bold flex items-center justify-center ring-4 ring-white shadow" style="background:${color}">${num}</div>
+              ${legBadge}
               <div class="bg-white rounded-2xl border border-slate-200 p-3 sm:p-4 hover:shadow-md transition flex gap-3 sm:gap-4 items-center">
                 <div class="w-20 h-20 sm:w-24 sm:h-24 shrink-0 rounded-xl overflow-hidden relative shadow-sm border border-slate-100">
                   <img src="${photo}" alt="${esc(it.name)}" class="w-full h-full object-cover hover:scale-110 transition duration-500" loading="lazy">
@@ -777,9 +881,10 @@
         }).join('');
         return `
           <div>
-            <div class="flex items-center gap-3 mb-4">
+            <div class="flex items-center gap-3 mb-4 flex-wrap">
               <span class="px-3 py-1 rounded-full text-xs font-extrabold text-white" style="background:${color}">HARI ${d.day}</span>
               <span class="text-sm font-semibold text-slate-500">${date.toLocaleDateString('id-ID', { weekday: 'long', day: 'numeric', month: 'long' })}</span>
+              ${dayDist > 0 ? `<span class="text-[11px] font-bold text-slate-500 bg-slate-100 px-2.5 py-0.5 rounded-full"><i class="fa-solid fa-route mr-1 text-brand-600"></i>${dayDist} km · ~${dayTime} mnt</span>` : ''}
               <div class="flex-1 h-px bg-slate-200"></div>
             </div>
             ${items}
@@ -803,6 +908,7 @@
                   <span><i class="fa-solid fa-plane-departure mr-1.5"></i>${esc(plan.origin)} → ${esc(plan.destination)}</span>
                   <span><i class="fa-regular fa-calendar mr-1.5"></i>${fmtDate(plan.start_date)} – ${fmtDate(plan.end_date)}</span>
                   <span><i class="fa-solid fa-users mr-1.5"></i>${plan.travelers} orang</span>
+                  ${routeSum.total_distance_km > 0 ? `<span><i class="fa-solid fa-route mr-1.5"></i>Total ± ${routeSum.total_distance_km} km (~${routeSum.total_travel_time_min} mnt)</span>` : ''}
                 </p>
               </div>
               ${saveable ? `
@@ -813,6 +919,7 @@
               </div>` : savedId ? `
               <div id="result-actions" class="flex flex-wrap gap-2">
                 <button onclick="window.print()" title="Cetak PDF" class="px-3.5 py-2.5 rounded-xl bg-white/20 hover:bg-white/30 backdrop-blur text-sm font-bold"><i class="fa-solid fa-print"></i></button>
+                <button onclick="openEditModal('${esc(savedId)}', event)" class="px-4 py-2.5 rounded-xl bg-amber-400 hover:bg-amber-300 text-slate-900 text-sm font-bold shadow"><i class="fa-solid fa-pen-to-square mr-1.5"></i>Edit</button>
                 <button onclick="sharePlan('${esc(savedId)}', event)" class="px-4 py-2.5 rounded-xl bg-white text-slate-900 hover:bg-slate-100 text-sm font-bold shadow"><i class="fa-solid fa-share-nodes mr-1.5 text-brand-600"></i>Bagikan</button>
                 <button onclick="deletePlan('${esc(savedId)}', event)" class="px-4 py-2.5 rounded-xl bg-rose-500/90 hover:bg-rose-600 text-white text-sm font-bold shadow"><i class="fa-regular fa-trash-can mr-1.5"></i>Hapus</button>
               </div>` : plan.shared ? `
@@ -1109,13 +1216,183 @@
       toast('Alamat URL mobile disalin!');
     }
 
+    // ================= RF-02: PROFIL & PREFERENSI DEFAULT =================
+    async function syncPreferencesToForm() {
+      if (!token()) return;
+      try {
+        const me = await api('/auth/me', { auth: true });
+        if (me.full_name) {
+          localStorage.setItem('ruteku_user_name', me.full_name);
+          renderAuth();
+        }
+        const p = me.preferences || {};
+        if (p.default_origin) $('input-origin').value = p.default_origin;
+        if (p.default_travelers) {
+          $('input-travelers').value = p.default_travelers;
+          $('travelers-label').textContent = p.default_travelers;
+        }
+        if (p.default_budget) {
+          $('input-budget').value = p.default_budget;
+          updateBudgetLabel();
+        }
+        if (Array.isArray(p.default_interests)) {
+          const set = new Set(p.default_interests.map(x => String(x).toLowerCase()));
+          document.querySelectorAll('input[name="interest"]').forEach(cb => {
+            cb.checked = set.has(cb.value.toLowerCase());
+          });
+        }
+      } catch (e) {}
+    }
+
+    async function openProfileModal() {
+      if (!token()) { openAuthModal('login'); return; }
+      try {
+        const me = await api('/auth/me', { auth: true });
+        $('profile-email').textContent = me.email;
+        $('prof-name').value = me.full_name || '';
+        const p = me.preferences || {};
+        $('prof-origin').value = p.default_origin || 'Samarinda';
+        $('prof-travelers').value = p.default_travelers || 2;
+        $('prof-budget').value = p.default_budget || 9000000;
+        const set = new Set((p.default_interests || ['alam', 'budaya']).map(x => String(x).toLowerCase()));
+        $('prof-interests').innerHTML = Object.entries(CATS).map(([name, c]) => `
+          <label class="cursor-pointer">
+            <input type="checkbox" name="prof-interest" value="${name.toLowerCase()}" ${set.has(name.toLowerCase()) ? 'checked' : ''} class="peer sr-only">
+            <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full border-2 text-xs font-semibold text-slate-600 border-slate-200
+              peer-checked:border-ink peer-checked:bg-ink peer-checked:text-white transition">
+              <i class="fa-solid ${c.icon}"></i>${name}
+            </span>
+          </label>`).join('');
+        $('profile-modal').classList.replace('hidden', 'flex');
+      } catch (ex) { toast(ex.message, 'err'); }
+    }
+    function closeProfileModal() { $('profile-modal').classList.replace('flex', 'hidden'); }
+
+    async function handleSaveProfile(e) {
+      e.preventDefault();
+      const body = {
+        full_name: $('prof-name').value.trim(),
+        default_origin: $('prof-origin').value.trim(),
+        default_travelers: parseInt($('prof-travelers').value),
+        default_budget: parseInt($('prof-budget').value),
+        default_interests: [...document.querySelectorAll('input[name="prof-interest"]:checked')].map(c => c.value)
+      };
+      try {
+        const res = await api('/auth/me', { method: 'PATCH', auth: true, body: JSON.stringify(body) });
+        localStorage.setItem('ruteku_user_name', res.full_name);
+        renderAuth();
+        await syncPreferencesToForm();
+        closeProfileModal();
+        toast(res.message || 'Profil & preferensi berhasil disimpan!');
+      } catch (ex) { toast(ex.message, 'err'); }
+    }
+
+    async function handleChangePassword(e) {
+      e.preventDefault();
+      try {
+        const res = await api('/auth/change-password', {
+          method: 'POST', auth: true,
+          body: JSON.stringify({ current_password: $('pw-current').value, new_password: $('pw-new').value })
+        });
+        if (res.access_token) localStorage.setItem('ruteku_token', res.access_token);
+        $('pw-current').value = ''; $('pw-new').value = '';
+        toast(res.message || 'Kata sandi berhasil diubah!');
+      } catch (ex) { toast(ex.message, 'err'); }
+    }
+
+    // ================= RF-10: EDIT RENCANA PERJALANAN =================
+    let editState = { id: null, cityDests: [], days: [] };
+
+    async function openEditModal(id, ev) {
+      if (ev) ev.stopPropagation();
+      try {
+        const plan = await api('/itineraries/' + id, { auth: true });
+        const dests = await api('/destinations?location=' + encodeURIComponent(plan.destination));
+        editState = {
+          id,
+          cityDests: dests,
+          days: (plan.days || []).map(d => ({
+            day: d.day,
+            items: (d.items || []).map(it => ({
+              destination_id: it.destination_id,
+              time: it.time || '09:00',
+              note: it.note || ''
+            }))
+          }))
+        };
+        $('edit-id').value = id;
+        $('edit-title').value = plan.title || '';
+        $('edit-travelers').value = plan.travelers || 2;
+        $('edit-budget').value = plan.budget || 9000000;
+        renderEditDays();
+        $('edit-modal').classList.replace('hidden', 'flex');
+      } catch (ex) { toast(ex.message, 'err'); }
+    }
+    function closeEditModal() { $('edit-modal').classList.replace('flex', 'hidden'); }
+
+    function renderEditDays() {
+      const opts = (selId) => editState.cityDests.map(d =>
+        `<option value="${d.id}" ${d.id === selId ? 'selected' : ''}>${esc(d.name)} (${esc(d.category)})</option>`
+      ).join('');
+      $('edit-days-box').innerHTML = editState.days.map((d, di) => `
+        <div class="bg-slate-50 border border-slate-200 rounded-2xl p-3.5 space-y-2.5">
+          <div class="flex items-center justify-between">
+            <span class="text-xs font-extrabold text-slate-700 uppercase">Hari ${di + 1}</span>
+            <button type="button" onclick="addEditItem(${di})" class="text-xs font-bold text-brand-700 hover:underline">+ Tambah Destinasi</button>
+          </div>
+          ${d.items.map((it, ii) => `
+            <div class="grid grid-cols-12 gap-2 items-center bg-white border border-slate-200 rounded-xl p-2">
+              <input type="time" value="${esc(it.time)}" onchange="editState.days[${di}].items[${ii}].time=this.value" class="col-span-3 text-xs font-bold border border-slate-200 rounded-lg px-2 py-1.5">
+              <select onchange="editState.days[${di}].items[${ii}].destination_id=parseInt(this.value)" class="col-span-5 text-xs font-semibold border border-slate-200 rounded-lg px-2 py-1.5">
+                ${opts(it.destination_id)}
+              </select>
+              <input placeholder="Catatan..." value="${esc(it.note)}" oninput="editState.days[${di}].items[${ii}].note=this.value" maxlength="200" class="col-span-3 text-xs border border-slate-200 rounded-lg px-2 py-1.5">
+              <button type="button" onclick="removeEditItem(${di},${ii})" title="Hapus item" class="col-span-1 text-rose-500 hover:text-rose-700 text-xs font-bold"><i class="fa-solid fa-trash-can"></i></button>
+            </div>
+          `).join('')}
+        </div>
+      `).join('');
+    }
+
+    function addEditItem(di) {
+      if (!editState.cityDests.length) return;
+      const used = new Set(editState.days[di].items.map(x => x.destination_id));
+      const pick = editState.cityDests.find(d => !used.has(d.id)) || editState.cityDests[0];
+      editState.days[di].items.push({ destination_id: pick.id, time: '15:00', note: '' });
+      renderEditDays();
+    }
+
+    function removeEditItem(di, ii) {
+      editState.days[di].items.splice(ii, 1);
+      renderEditDays();
+    }
+
+    async function handleSaveEdit(e) {
+      e.preventDefault();
+      const id = $('edit-id').value;
+      const body = {
+        title: $('edit-title').value.trim(),
+        travelers: parseInt($('edit-travelers').value),
+        budget: parseInt($('edit-budget').value),
+        days: editState.days.map(d => ({ items: d.items }))
+      };
+      try {
+        const updated = await api('/itineraries/' + id, { method: 'PATCH', auth: true, body: JSON.stringify(body) });
+        closeEditModal();
+        $('detail-content').innerHTML = renderPlan(updated, { saveable: false, prefix: 'detail', title: updated.title, savedId: id });
+        renderMap('detail', updated);
+        loadHistory();
+        toast(updated.message || 'Rencana perjalanan berhasil diperbarui!');
+      } catch (ex) { toast(ex.message, 'err'); }
+    }
+
     // ================= INIT =================
-    document.addEventListener('keydown', e => { if (e.key === 'Escape') { closeAuthModal(); closeDetailModal(); closeQrModal(); } });
-    ['auth-modal', 'detail-modal', 'qr-modal'].forEach(id => $(id).addEventListener('click', e => { if (e.target.id === id) { if (id === 'auth-modal') closeAuthModal(); else if (id === 'detail-modal') closeDetailModal(); else closeQrModal(); } }));
+    document.addEventListener('keydown', e => { if (e.key === 'Escape') { closeAuthModal(); closeDetailModal(); closeQrModal(); closeProfileModal(); closeEditModal(); } });
+    ['auth-modal', 'detail-modal', 'qr-modal', 'profile-modal', 'edit-modal'].forEach(id => $(id)?.addEventListener('click', e => { if (e.target.id === id) { if (id === 'auth-modal') closeAuthModal(); else if (id === 'detail-modal') closeDetailModal(); else if (id === 'qr-modal') closeQrModal(); else if (id === 'profile-modal') closeProfileModal(); else closeEditModal(); } }));
 
     window.addEventListener('DOMContentLoaded', () => {
       renderAuth(); renderCityPicker(); renderInterestChips(); renderFilters();
-      initDates(); updateBudgetLabel(); switchView('plan'); loadSharedFromUrl();
+      initDates(); updateBudgetLabel(); switchView('plan'); loadSharedFromUrl(); syncPreferencesToForm();
     });
   </script>
 </body>

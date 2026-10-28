@@ -49,3 +49,19 @@ class Itinerary(Base):
     total_cost: Mapped[int] = mapped_column(Integer)
     data: Mapped[dict] = mapped_column(JSON)  # prototipe: item itinerary disimpan sebagai JSON
     created_at: Mapped[datetime] = mapped_column(DateTime, default=_now)
+
+
+class UserPreference(Base):  # RF-02: preferensi default pengguna (dipakai untuk mengisi form perencanaan)
+    __tablename__ = "user_preferences"
+    user_id: Mapped[str] = mapped_column(ForeignKey("users.id"), primary_key=True)
+    default_origin: Mapped[str] = mapped_column(String(100), default="")
+    default_budget: Mapped[int] = mapped_column(Integer, default=0)
+    default_travelers: Mapped[int] = mapped_column(Integer, default=1)
+    default_interests: Mapped[list] = mapped_column(JSON, default=list)
+
+
+class ShareLink(Base):  # RF-14: tautan berbagi dengan masa berlaku (B7: pencarian lewat primary key, bukan scan tabel)
+    __tablename__ = "share_links"
+    token: Mapped[str] = mapped_column(String(64), primary_key=True)
+    itinerary_id: Mapped[str] = mapped_column(ForeignKey("itineraries.id"), index=True)
+    expires_at: Mapped[datetime] = mapped_column(DateTime)
