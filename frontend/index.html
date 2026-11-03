@@ -481,44 +481,62 @@
         icon: 'fa-umbrella-beach',
         grad: 'from-orange-500 to-pink-600',
         tag: 'Pantai & pura',
-        img: 'https://images.unsplash.com/photo-1537996194471-e657df975ab4?auto=format&fit=crop&w=800&q=80'
+        img: '/img/tanah_lot.jpg'
       },
       'Yogyakarta': {
         icon: 'fa-gopuram',
         grad: 'from-amber-600 to-red-600',
         tag: 'Candi & budaya',
-        img: 'https://images.unsplash.com/photo-1596402184320-417e7178b2cd?auto=format&fit=crop&w=800&q=80'
+        img: '/img/borobudur.jpg'
       },
       'Labuan Bajo': {
         icon: 'fa-dragon',
         grad: 'from-sky-600 to-indigo-700',
         tag: 'Pulau & komodo',
-        img: 'https://images.unsplash.com/photo-1518548419970-58e3b4079ab2?auto=format&fit=crop&w=800&q=80'
+        img: '/img/pulau_padar.jpg'
       },
       'Derawan': {
         icon: 'fa-fish-fins',
         grad: 'from-teal-500 to-cyan-700',
         tag: 'Laut & penyu',
-        img: 'https://images.unsplash.com/photo-1544551763-46a013bb70d5?auto=format&fit=crop&w=800&q=80'
+        img: '/img/pulau_derawan.jpg'
       },
     };
 
     const DEST_PHOTOS = {
-      'Pura Tanah Lot': 'https://images.unsplash.com/photo-1555400038-63f5ba517a47?auto=format&fit=crop&w=700&q=80',
-      'Pantai Kuta': 'https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=700&q=80',
-      'Tegalalang Rice Terrace': 'https://images.unsplash.com/photo-1537996194471-e657df975ab4?auto=format&fit=crop&w=700&q=80',
-      'Pura Uluwatu': 'https://images.unsplash.com/photo-1604999333679-b86d54738315?auto=format&fit=crop&w=700&q=80',
-      'Ubud Monkey Forest': 'https://images.unsplash.com/photo-1580618672591-eb180b1a973f?auto=format&fit=crop&w=700&q=80',
-      'Candi Prambanan': 'https://images.unsplash.com/photo-1596402184320-417e7178b2cd?auto=format&fit=crop&w=700&q=80',
-      'Keraton Yogyakarta': 'https://images.unsplash.com/photo-1584810359583-96fc3448beaa?auto=format&fit=crop&w=700&q=80',
-      'Malioboro': 'https://images.unsplash.com/photo-1570789210967-2cac24afeb00?auto=format&fit=crop&w=700&q=80',
-      'Taman Sari': 'https://images.unsplash.com/photo-1579783900882-c0d3dad7b119?auto=format&fit=crop&w=700&q=80',
-      'Candi Borobudur': 'https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=700&q=80',
-      'Pulau Padar': 'https://images.unsplash.com/photo-1506744038136-46273834b3fb?auto=format&fit=crop&w=700&q=80',
-      'Pulau Komodo': 'https://images.unsplash.com/photo-1518548419970-58e3b4079ab2?auto=format&fit=crop&w=700&q=80',
-      'Pink Beach': 'https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=700&q=80',
-      'Pulau Derawan': 'https://images.unsplash.com/photo-1544551763-46a013bb70d5?auto=format&fit=crop&w=700&q=80',
-      'Pulau Kakaban': 'https://images.unsplash.com/photo-1544551763-77ef2d0cfc6c?auto=format&fit=crop&w=700&q=80'
+      'Pura Tanah Lot': '/img/tanah_lot.jpg',
+      'Pantai Kuta': '/img/pantai_kuta.jpg',
+      'Tegalalang Rice Terrace': '/img/tegalalang.jpg',
+      'Pura Uluwatu': '/img/uluwatu.jpg',
+      'Ubud Monkey Forest': '/img/monkey_forest.jpg',
+      'Candi Prambanan': '/img/prambanan.jpg',
+      'Keraton Yogyakarta': '/img/keraton.jpg',
+      'Malioboro': '/img/malioboro.jpg',
+      'Taman Sari': '/img/taman_sari.jpg',
+      'Candi Borobudur': '/img/borobudur.jpg',
+      'Pulau Padar': '/img/pulau_padar.jpg',
+      'Pulau Komodo': '/img/pulau_komodo.jpg',
+      'Pink Beach': '/img/pink_beach.jpg',
+      'Pulau Derawan': '/img/pulau_derawan.jpg',
+      'Pulau Kakaban': '/img/pulau_kakaban.jpg'
+    };
+
+    const DEST_DESC = {
+      'Pura Tanah Lot': 'Pura laut ikonik di atas batu karang besar di pesisir Tabanan dengan panorama matahari terbenam terbaik di Bali.',
+      'Pantai Kuta': 'Pantai berpasir putih legendaris di Bali Selatan yang populer untuk berselancar, santai sore, dan menikmati sunset.',
+      'Tegalalang Rice Terrace': 'Hamparan sawah terasering hijau berundak khas sistem irigasi Subak Bali di kawasan sejuk Ubud.',
+      'Pura Uluwatu': 'Pura sakral di ujung tebing karang setinggi 70 meter di atas Samudra Hindia, terkenal dengan pertunjukan Tari Kecak.',
+      'Ubud Monkey Forest': 'Cagar alam hutan hujan tropis dan kompleks pura kuno di Ubud yang dihuni ratusan kera ekor panjang Bali.',
+      'Candi Prambanan': 'Kompleks candi Hindu terbesar di Indonesia abad ke-9 yang menjulang megah dan diakui sebagai Warisan Dunia UNESCO.',
+      'Keraton Yogyakarta': 'Istana resmi Kesultanan Ngayogyakarta Hadiningrat yang menjadi pusat budaya, sejarah, dan arsitektur klasik Jawa.',
+      'Malioboro': 'Kawasan boulevard paling ikonik di jantung Yogyakarta untuk wisata kuliner malam, belanja batik, dan oleh-oleh khas.',
+      'Taman Sari': 'Situs bekas taman dan kolam pemandian kerajaan Kesultanan Yogyakarta abad ke-18 dengan arsitektur menara air yang unik.',
+      'Candi Borobudur': 'Candi Buddha terbesar di dunia dari abad ke-9 dengan stupa berukir relief bersejarah yang megah.',
+      'Pulau Padar': 'Pulau vulkanik dengan bukit sabana dan panorama tiga teluk melengkung berpasir putih, hitam, dan merah muda di Taman Nasional Komodo.',
+      'Pulau Komodo': 'Habitat asli satwa purba Komodo (Varanus komodoensis) terbesar di dunia dengan lanskap padang sabana eksotis.',
+      'Pink Beach': 'Pantai Merah langka di Taman Nasional Komodo dengan pasir berwarna merah muda alami dan terumbu karang jernih.',
+      'Pulau Derawan': 'Pulau tropis di Kalimantan Timur dengan air laut biru jernih, dermaga kayu panjang, dan konservasi penyu hijau.',
+      'Pulau Kakaban': 'Pulau atol unik di Kepulauan Derawan yang memiliki danau air payau berisi ribuan ubur-ubur tanpa sengat (stingless jellyfish).'
     };
 
     function getPhoto(name, location = '') {
@@ -531,7 +549,7 @@
         }
       }
       if (location && CITIES[location]?.img) return CITIES[location].img;
-      return 'https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=700&q=80';
+      return '/img/tanah_lot.jpg';
     }
     const CATS = {
       'Alam':    { icon: 'fa-mountain-sun', cls: 'bg-emerald-50 text-emerald-700', grad: 'from-emerald-400 to-teal-600' },
@@ -1083,7 +1101,7 @@
             </div>
             <div class="p-5">
               <h3 class="text-lg font-extrabold text-slate-900">${esc(d.name)}</h3>
-              <p class="text-xs text-slate-500 mt-1 line-clamp-2">${esc(d.description || 'Destinasi wisata unggulan di ' + d.location)}</p>
+              <p class="text-xs text-slate-500 mt-1 line-clamp-2">${esc(DEST_DESC[d.name] || d.description || 'Destinasi wisata unggulan di ' + d.location)}</p>
               <div class="mt-4 pt-4 border-t border-slate-100 flex items-center justify-between">
                 <div><p class="text-[11px] text-slate-400">Tiket masuk</p><p class="font-extrabold text-slate-900">${d.price_estimate ? rp(d.price_estimate) : '<span class="text-brand-600 font-bold">Gratis</span>'}</p></div>
                 <button onclick="planFor('${esc(d.location)}')" class="text-xs font-bold text-brand-700 hover:text-brand-800 bg-brand-50 hover:bg-brand-100 px-3 py-1.5 rounded-xl transition flex items-center gap-1.5">Rencanakan <i class="fa-solid fa-arrow-right text-[10px]"></i></button>
@@ -1118,7 +1136,7 @@
           return;
         }
         box.innerHTML = `<div class="grid md:grid-cols-2 lg:grid-cols-3 gap-5">${data.map((it, i) => {
-          const city = CITIES[it.destination] || { icon: 'fa-location-dot', grad: 'from-slate-500 to-slate-700', img: 'https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=700&q=80' };
+          const city = CITIES[it.destination] || { icon: 'fa-location-dot', grad: 'from-slate-500 to-slate-700', img: '/img/tanah_lot.jpg' };
           const photo = city.img || getPhoto(it.destination, it.destination);
           return `
           <div onclick="viewDetail('${it.id}')" role="button" tabindex="0" class="fade-up cursor-pointer text-left group bg-white rounded-3xl border border-slate-200 overflow-hidden hover:shadow-xl hover:-translate-y-1 transition duration-300" style="animation-delay:${i * 50}ms">
